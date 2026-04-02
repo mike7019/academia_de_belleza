@@ -10,7 +10,7 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // En una versión posterior se cargará login.fxml desde resources
+        // En una versión posterior se cargará login.fxml desde reso
         Parent root = new FXMLLoader(getClass().getResource("/ui/view/login.fxml")).load();
         primaryStage.setTitle("Academia de Belleza");
         primaryStage.setScene(new Scene(root));
