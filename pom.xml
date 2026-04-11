@@ -65,6 +65,20 @@
             <version>${flyway.version}</version>
         </dependency>
 
+        <!-- Soporte específico de PostgreSQL para Flyway 10+ -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+            <version>${flyway.version}</version>
+        </dependency>
+
+        <!-- BCrypt para hashing de contraseñas -->
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>0.4</version>
+        </dependency>
+
         <!-- JasperReports para reportes -->
         <dependency>
             <groupId>net.sf.jasperreports</groupId>

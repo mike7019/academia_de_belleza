@@ -15,6 +15,7 @@
             <TextField fx:id="usernameField" promptText="Usuario" maxWidth="200"/>
             <PasswordField fx:id="passwordField" promptText="Contraseña" maxWidth="200"/>
             <Button text="Iniciar sesión" onAction="#onLogin" maxWidth="200"/>
+            <Button text="Registrarse" onAction="#onRegister" maxWidth="200"/>
             <Label fx:id="messageLabel" textFill="red"/>
         </VBox>
     </center>
