@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence" version="3.0">
+
+    <persistence-unit name="academiaPU" transaction-type="RESOURCE_LOCAL">
+        <!-- Proveedor JPA: Hibernate -->
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+
+        <!--
+            Usamos autodetección de entidades anotadas en el classpath
+            (org.example.academia.domain.entity.*), por lo que no listamos
+            explícitamente cada clase aquí.
+        -->
+        <exclude-unlisted-classes>false</exclude-unlisted-classes>
+
+        <properties>
+            <!-- Config por defecto (coincide con docker-compose). Se pueden sobreescribir
+                 vía DatabaseConfig usando propiedades pasadas al crear el EMF. -->
+            <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/academia_db"/>
+            <property name="jakarta.persistence.jdbc.user" value="academia_user"/>
+            <property name="jakarta.persistence.jdbc.password" value="academia_pass"/>
+
+            <!-- Dialecto Hibernate para PostgreSQL -->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
+
+            <!-- El esquema lo gestionan el script Docker + Flyway, no Hibernate -->
+            <property name="hibernate.hbm2ddl.auto" value="none"/>
+
+            <!-- Opcional: logging de SQL para desarrollo -->
+            <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+        </properties>
+    </persistence-unit>
+
+</persistence>
+

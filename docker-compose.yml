@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: academia_belleza_db
+    environment:
+      POSTGRES_DB: academia_db
+      POSTGRES_USER: academia_user
+      POSTGRES_PASSWORD: academia_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - academia_pgdata:/var/lib/postgresql/data
+      # Carpeta con scripts de inicialización (.sql, .sh)
+      - ./db/init:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+
+volumes:
+  academia_pgdata:
+    driver: local
+  pgadmin_data:
+    driver: local
+
