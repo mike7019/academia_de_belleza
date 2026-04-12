@@ -6,7 +6,9 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Entidad Usuario.
@@ -53,7 +55,7 @@ public class Usuario {
 			joinColumns = @JoinColumn(name = "usuario_id"),
 			inverseJoinColumns = @JoinColumn(name = "rol_id")
 	)
-	private List<Rol> roles = new ArrayList<>();
+	private Set<Rol> roles = new HashSet<>();
 }
 
 

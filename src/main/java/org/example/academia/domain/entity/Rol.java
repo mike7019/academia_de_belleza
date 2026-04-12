@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Entidad Rol.
@@ -37,6 +37,7 @@ public class Rol {
             joinColumns = @JoinColumn(name = "rol_id"),
             inverseJoinColumns = @JoinColumn(name = "permiso_id")
     )
-    private List<Permiso> permisos = new ArrayList<>();
+    private Set<Permiso> permisos = new HashSet<>();
 }
+
 
