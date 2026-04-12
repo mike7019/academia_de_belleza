@@ -46,6 +46,14 @@ public class Usuario {
 
 	@OneToMany(mappedBy = "usuario")
 	private List<Auditoria> auditorias = new ArrayList<>();
+
+	@ManyToMany
+	@JoinTable(
+			name = "usuario_rol",
+			joinColumns = @JoinColumn(name = "usuario_id"),
+			inverseJoinColumns = @JoinColumn(name = "rol_id")
+	)
+	private List<Rol> roles = new ArrayList<>();
 }
 
 

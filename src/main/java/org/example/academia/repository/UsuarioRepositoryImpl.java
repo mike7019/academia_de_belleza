@@ -18,8 +18,14 @@ public class UsuarioRepositoryImpl implements UsuarioRepository {
     public Optional<Usuario> findByUsername(String username) {
         EntityManager em = DatabaseConfig.createEntityManager();
         try {
+            // Cargar también roles y permisos asociados para que AuthorizationService
+            // pueda evaluar permisos sin consultas adicionales (JOIN FETCH lazy-safe).
             TypedQuery<Usuario> query = em.createQuery(
-                    "SELECT u FROM Usuario u WHERE u.username = :username", Usuario.class);
+                    "SELECT DISTINCT u FROM Usuario u " +
+                            "LEFT JOIN FETCH u.roles r " +
+                            "LEFT JOIN FETCH r.permisos " +
+                            "WHERE u.username = :username",
+                    Usuario.class);
             query.setParameter("username", username);
             Usuario usuario = query.getSingleResult();
             return Optional.of(usuario);
