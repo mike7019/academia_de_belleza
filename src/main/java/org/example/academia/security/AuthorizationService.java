@@ -1,5 +1,6 @@
 package org.example.academia.security;
 
+import org.example.academia.domain.entity.Rol;
 import org.example.academia.domain.entity.Usuario;
 
 /**
@@ -33,9 +34,17 @@ public class AuthorizationService {
 		if (current == null) {
 			return false;
 		}
-		// En esta versión inicial no se discrimina por "codigoPermiso".
-		// Más adelante se integrará con roles y permisos almacenados en BD.
-		return true;
+
+		if (current.getRoles() == null || current.getRoles().isEmpty()) {
+			return false;
+		}
+
+		// Recorremos roles activos y sus permisos asociados para comprobar el código de permiso.
+		return current.getRoles().stream()
+				.filter(Rol::isActivo)
+				.filter(rol -> rol.getPermisos() != null)
+				.flatMap(rol -> rol.getPermisos().stream())
+				.anyMatch(p -> p.getCodigo() != null && p.getCodigo().equalsIgnoreCase(codigoPermiso));
 	}
 
 	/**

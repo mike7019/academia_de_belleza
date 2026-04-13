@@ -6,7 +6,9 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Entidad Usuario.
@@ -46,6 +48,14 @@ public class Usuario {
 
 	@OneToMany(mappedBy = "usuario")
 	private List<Auditoria> auditorias = new ArrayList<>();
+
+	@ManyToMany
+	@JoinTable(
+			name = "usuario_rol",
+			joinColumns = @JoinColumn(name = "usuario_id"),
+			inverseJoinColumns = @JoinColumn(name = "rol_id")
+	)
+	private Set<Rol> roles = new HashSet<>();
 }
 
 
