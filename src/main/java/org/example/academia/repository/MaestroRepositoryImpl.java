@@ -17,8 +17,7 @@ public class MaestroRepositoryImpl implements MaestroRepository {
 
     @Override
     public Optional<Maestro> findByNumeroDocumento(String numeroDocumento) {
-        EntityManager em = DatabaseConfig.createEntityManager();
-        try {
+        try (EntityManager em = DatabaseConfig.createEntityManager()) {
             TypedQuery<Maestro> query = em.createQuery(
                     "SELECT m FROM Maestro m WHERE m.activo = true AND m.numeroDocumento = :numeroDocumento",
                     Maestro.class);
@@ -27,44 +26,38 @@ public class MaestroRepositoryImpl implements MaestroRepository {
             return Optional.of(maestro);
         } catch (NoResultException ex) {
             return Optional.empty();
-        } finally {
-            em.close();
         }
     }
 
     @Override
     public List<Maestro> findByActivoTrue() {
-        EntityManager em = DatabaseConfig.createEntityManager();
-        try {
+        try (EntityManager em = DatabaseConfig.createEntityManager()) {
             TypedQuery<Maestro> query = em.createQuery(
                     "SELECT m FROM Maestro m WHERE m.activo = true",
                     Maestro.class);
             return query.getResultList();
-        } finally {
-            em.close();
         }
     }
 
     @Override
     public Maestro save(Maestro maestro) {
-        EntityManager em = DatabaseConfig.createEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        try {
-            tx.begin();
-            if (maestro.getId() == null) {
-                em.persist(maestro);
-            } else {
-                maestro = em.merge(maestro);
+        try (EntityManager em = DatabaseConfig.createEntityManager()) {
+            EntityTransaction tx = em.getTransaction();
+            try {
+                tx.begin();
+                if (maestro.getId() == null) {
+                    em.persist(maestro);
+                } else {
+                    maestro = em.merge(maestro);
+                }
+                tx.commit();
+                return maestro;
+            } catch (RuntimeException ex) {
+                if (tx.isActive()) {
+                    tx.rollback();
+                }
+                throw ex;
             }
-            tx.commit();
-            return maestro;
-        } catch (RuntimeException ex) {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
-            throw ex;
-        } finally {
-            em.close();
         }
     }
 }
