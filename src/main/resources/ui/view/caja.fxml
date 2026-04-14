@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.example.academia.ui.controller.CajaController">
-    <center>
-        <VBox alignment="CENTER" spacing="10.0">
-            <padding>
-                <Insets top="20" right="20" bottom="20" left="20"/>
-            </padding>
-            <Label text="Módulo Pagos / Caja" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
-            <Label text="Pantalla de caja y pagos de estudiantes (placeholder)."/>
-        </VBox>
-    </center>
-</BorderPane>
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="org.example.academia.ui.controller.CajaController">
+
+    <VBox alignment="CENTER" spacing="10.0" styleClass="content-card">
+        <Label text="Módulo Pagos / Caja" styleClass="content-title"/>
+        <Label text="Pantalla de caja y pagos de estudiantes (placeholder)." styleClass="content-subtitle"/>
+    </VBox>
+
+</StackPane>
 

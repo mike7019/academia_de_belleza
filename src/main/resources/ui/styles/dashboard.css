@@ -1,6 +1,6 @@
 .root-pane {
-    -fx-background-color: #f3f4f6; /* Background */
-    -fx-font-family: "Segoe UI", system-ui, sans-serif;
+  -fx-background-color: #f3f4f6; /* Fallback background */
+  -fx-font-family: "Segoe UI", system-ui, sans-serif;
 }
 
 /* Topbar */
@@ -102,15 +102,25 @@
 
 /* Content area */
 .content-pane {
-    -fx-padding: 24;
+  /* Sin padding interno; el margen lo gestiona el controlador vía StackPane.setMargin */
+  -fx-padding: 0;
+  /* Imagen solo en el área central, sin solaparse con el sidebar */
+  -fx-background-image: url("/img/img.png");
+  -fx-background-size: contain; /* mostrar la imagen completa */
+  -fx-background-position: center center;
+  -fx-background-repeat: no-repeat;
 }
 
 .content-card {
-    -fx-background-color: #ffffff;
-    -fx-background-radius: 12;
-    -fx-padding: 24;
-    -fx-spacing: 8;
-    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.08), 16, 0, 0, 4);
+  /* Panel principal semitransparente para que se aprecie la imagen de fondo */
+  -fx-background-color: rgba(255, 255, 255, 0.85);
+  -fx-background-radius: 12;
+  -fx-padding: 24;
+  -fx-spacing: 8;
+  -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.08), 16, 0, 0, 4);
+  /* Hacer que el panel crezca para llenar la mayor parte del área central */
+  -fx-max-width: Infinity;
+  -fx-max-height: Infinity;
 }
 
 .content-title {
