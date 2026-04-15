@@ -1,9 +1,11 @@
 package org.example.academia.service;
 
 import org.example.academia.domain.entity.Maestro;
+
 import org.example.academia.repository.MaestroRepository;
 import org.example.academia.repository.MaestroRepositoryImpl;
 import org.example.academia.security.AuthorizationService;
+import org.example.academia.util.BusinessException;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,26 +53,29 @@ public class MaestroService {
      * @throws IllegalArgumentException si el maestro ya existe (documento único) o datos inválidos.
      */
     public Maestro guardarMaestro(Maestro maestro) {
-        authorizationService.requirePermission("MAE_CREAR");
+        authorizationService.requirePermission("MAESTRO_CREAR");
 
         // Validaciones básicas
         if (maestro == null || maestro.getNumeroDocumento() == null || maestro.getNumeroDocumento().isBlank()) {
-            throw new IllegalArgumentException("El número de documento es obligatorio");
+            throw new BusinessException("El número de documento es obligatorio");
         }
 
         if (maestro.getNombre() == null || maestro.getNombre().isBlank()) {
-            throw new IllegalArgumentException("El nombre es obligatorio");
+            throw new BusinessException("El nombre es obligatorio");
         }
 
         if (maestro.getApellido() == null || maestro.getApellido().isBlank()) {
-            throw new IllegalArgumentException("El apellido es obligatorio");
+            throw new BusinessException("El apellido es obligatorio");
         }
 
         // Verificar que no exista un maestro con el mismo documento
         Optional<Maestro> existente = maestroRepository.findByNumeroDocumento(maestro.getNumeroDocumento());
         if (existente.isPresent()) {
-            throw new IllegalArgumentException("Ya existe un maestro con el número de documento: " + maestro.getNumeroDocumento());
+            throw new BusinessException("Ya existe un maestro con el número de documento: " + maestro.getNumeroDocumento());
         }
+
+        // Validar modalidad de pago
+        validarModalidadPago(maestro);
 
         maestro.setActivo(true);
         return maestroRepository.save(maestro);
@@ -84,21 +89,93 @@ public class MaestroService {
      * @throws IllegalArgumentException si el maestro no tiene ID o datos inválidos.
      */
     public Maestro actualizarMaestro(Maestro maestro) {
-        authorizationService.requirePermission("MAE_ACTUALIZAR");
+        authorizationService.requirePermission("MAESTRO_EDITAR");
 
         // Validaciones básicas
         if (maestro == null || maestro.getId() == null) {
-            throw new IllegalArgumentException("El maestro debe tener un ID para actualizar");
+            throw new BusinessException("El maestro debe tener un ID para actualizar");
         }
 
         if (maestro.getNombre() == null || maestro.getNombre().isBlank()) {
-            throw new IllegalArgumentException("El nombre es obligatorio");
+            throw new BusinessException("El nombre es obligatorio");
         }
 
         if (maestro.getApellido() == null || maestro.getApellido().isBlank()) {
-            throw new IllegalArgumentException("El apellido es obligatorio");
+            throw new BusinessException("El apellido es obligatorio");
         }
 
+        // Validar documento único si cambia
+        Optional<Maestro> existente = maestroRepository.findByNumeroDocumento(maestro.getNumeroDocumento());
+        if (existente.isPresent() && !existente.get().getId().equals(maestro.getId())) {
+            throw new BusinessException("Ya existe un maestro con el número de documento: " + maestro.getNumeroDocumento());
+        }
+
+        // Validar modalidad de pago
+        validarModalidadPago(maestro);
+
         return maestroRepository.save(maestro);
+    }
+
+    /**
+     * Valida que los datos de pago del maestro sean coherentes según su modalidad.
+     */
+    private void validarModalidadPago(Maestro maestro) {
+        if (maestro.getTipoPagoProfesor() == null) {
+            throw new BusinessException("Debe seleccionar una modalidad de pago para el maestro");
+        }
+        switch (maestro.getTipoPagoProfesor().name()) {
+            case "POR_HORA":
+                if (maestro.getTarifaHora() == null) {
+                    throw new BusinessException("La tarifa por hora es obligatoria para modalidad POR_HORA");
+                }
+                if (maestro.getSalarioMensual() != null || maestro.getTarifaPorCurso() != null || maestro.getPorcentajePorCurso() != null) {
+                    throw new BusinessException("Solo la tarifa por hora debe estar informada para modalidad POR_HORA");
+                }
+                break;
+            case "FIJO_MENSUAL":
+                if (maestro.getSalarioMensual() == null) {
+                    throw new BusinessException("El salario mensual es obligatorio para modalidad FIJO_MENSUAL");
+                }
+                if (maestro.getTarifaHora() != null || maestro.getTarifaPorCurso() != null || maestro.getPorcentajePorCurso() != null) {
+                    throw new BusinessException("Solo el salario mensual debe estar informado para modalidad FIJO_MENSUAL");
+                }
+                break;
+            case "POR_CURSO":
+                if (maestro.getTarifaPorCurso() == null) {
+                    throw new BusinessException("La tarifa por curso es obligatoria para modalidad POR_CURSO");
+                }
+                if (maestro.getTarifaHora() != null || maestro.getSalarioMensual() != null || maestro.getPorcentajePorCurso() != null) {
+                    throw new BusinessException("Solo la tarifa por curso debe estar informada para modalidad POR_CURSO");
+                }
+                break;
+            case "PORCENTAJE":
+                if (maestro.getPorcentajePorCurso() == null) {
+                    throw new BusinessException("El porcentaje por curso es obligatorio para modalidad PORCENTAJE");
+                }
+                if (maestro.getTarifaHora() != null || maestro.getSalarioMensual() != null || maestro.getTarifaPorCurso() != null) {
+                    throw new BusinessException("Solo el porcentaje debe estar informado para modalidad PORCENTAJE");
+                }
+                break;
+            default:
+                throw new BusinessException("Modalidad de pago no soportada: " + maestro.getTipoPagoProfesor());
+        }
+    }
+
+    /**
+     * Inactiva un maestro (soft delete).
+     * @param id ID del maestro a inactivar
+     */
+    public void inactivarMaestro(Long id) {
+        authorizationService.requirePermission("MAESTRO_INACTIVAR");
+        Optional<Maestro> maestroOpt = maestroRepository.findById(id);
+        if (maestroOpt.isEmpty()) {
+            throw new BusinessException("No se encontró el maestro con ID: " + id);
+        }
+        Maestro maestro = maestroOpt.get();
+        if (!maestro.isActivo()) {
+            throw new BusinessException("El maestro ya está inactivo.");
+        }
+        maestro.setActivo(false);
+        maestroRepository.save(maestro);
     }
 }

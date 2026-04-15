@@ -35,5 +35,12 @@ public interface MaestroRepository {
      * @return el maestro guardado con ID asignado si es nuevo.
      */
     Maestro save(Maestro maestro);
-}
 
+    /**
+     * Busca un maestro por su ID (activo o inactivo).
+     *
+     * @param id ID del maestro
+     * @return Optional con el maestro si existe
+     */
+    Optional<Maestro> findById(Long id);
+}

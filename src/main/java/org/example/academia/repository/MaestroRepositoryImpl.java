@@ -60,4 +60,12 @@ public class MaestroRepositoryImpl implements MaestroRepository {
             }
         }
     }
+
+    @Override
+    public Optional<Maestro> findById(Long id) {
+        try (EntityManager em = DatabaseConfig.createEntityManager()) {
+            Maestro maestro = em.find(Maestro.class, id);
+            return maestro != null ? Optional.of(maestro) : Optional.empty();
+        }
+    }
 }
