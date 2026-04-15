@@ -11,6 +11,7 @@ import org.example.academia.security.AuthorizationService;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.example.academia.dto.PaginatedResult;
 
 /**
  * Servicio de Estudiantes con validaciones de negocio.
@@ -33,9 +34,11 @@ public class EstudianteService {
 	 * - numeroDocumento obligatorio y único
 	 */
 	public EstudianteDTO save(EstudianteDTO dto) {
+		authorizationService.requirePermission("ESTUDIANTE_CREAR");
 
 		if (dto == null) {
 			throw new BusinessException("Datos de estudiante no proporcionados");
+
 		}
 
 		// Verificación de permisos por operación: crear o editar
@@ -106,6 +109,32 @@ public class EstudianteService {
 
 	public List<EstudianteDTO> findAll() {
 		return repository.findAll().stream().map(EstudianteMapper::toDTO).collect(Collectors.toList());
+	}
+
+	/**
+	 * Búsqueda paginada de estudiantes según criterios opcionales.
+	 * @param nombre fragmento de nombre (opcional)
+	 * @param apellido fragmento de apellido (opcional)
+	 * @param numeroDocumento fragmento de documento (opcional)
+	 * @param activo si no es null, filtra por activo
+	 * @param page 0-based
+	 * @param size tamaño de página (>0)
+	 * @param sortBy campo válido para ordenar (id,nombre,apellido,numeroDocumento,email)
+	 * @param asc true orden ascendente
+	 */
+	public PaginatedResult<EstudianteDTO> search(String nombre, String apellido, String numeroDocumento, Boolean activo,
+												  int page, int size, String sortBy, boolean asc) {
+		// Usar el permiso existente en los seeds: ESTUDIANTE_VER
+		authorizationService.requirePermission("ESTUDIANTE_VER");
+
+		if (page < 0) page = 0;
+		if (size <= 0) size = 100; // valor por defecto razonable
+
+		int offset = page * size;
+		List<Estudiante> entities = repository.search(nombre, apellido, numeroDocumento, activo, offset, size, sortBy, asc);
+		long total = repository.countByCriteria(nombre, apellido, numeroDocumento, activo);
+		List<EstudianteDTO> items = entities.stream().map(EstudianteMapper::toDTO).collect(Collectors.toList());
+		return new PaginatedResult<>(items, total, page, size);
 	}
 }
 

@@ -49,6 +49,11 @@
                 <Label fx:id="lblMensaje" />
             </HBox>
 
+            <HBox spacing="8">
+                <CheckBox fx:id="chFiltrarActivos" text="Sólo activos" />
+                <!-- Espacio reservado para paginación/orden en futuras mejoras -->
+            </HBox>
+
             <TableView fx:id="tblEstudiantes" prefHeight="200">
                 <columns>
                     <TableColumn fx:id="colId" text="ID" />
@@ -60,6 +65,13 @@
                     <TableColumn fx:id="colTelefono" text="Teléfono" />
                 </columns>
             </TableView>
+            <HBox spacing="8" alignment="CENTER_RIGHT">
+                <Button text="Anterior" fx:id="btnPrev" />
+                <Label fx:id="lblPageInfo" text="Página 1 de 1" />
+                <Button text="Siguiente" fx:id="btnNext" />
+                <Label text="Tamaño:" />
+                <ComboBox fx:id="cbPageSize" />
+            </HBox>
         </VBox>
     </center>
 </BorderPane>
