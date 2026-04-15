@@ -16,6 +16,7 @@ public class EstudianteDTO {
 	private String numeroDocumento;
 	private String telefono;
 	private String email;
+	private String direccion;
 	private boolean activo = true;
 	private LocalDate fechaRegistro;
 	private LocalDate fechaBaja;

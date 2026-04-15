@@ -36,8 +36,11 @@
                 <Label text="Email:" GridPane.rowIndex="5" GridPane.columnIndex="0" />
                 <TextField fx:id="tfEmail" GridPane.rowIndex="5" GridPane.columnIndex="1" />
 
-                <Label text="Activo:" GridPane.rowIndex="6" GridPane.columnIndex="0" />
-                <CheckBox fx:id="chActivo" selected="true" GridPane.rowIndex="6" GridPane.columnIndex="1" />
+                <Label text="Dirección:" GridPane.rowIndex="6" GridPane.columnIndex="0" />
+                <TextField fx:id="tfDireccion" GridPane.rowIndex="6" GridPane.columnIndex="1" />
+
+                <Label text="Activo:" GridPane.rowIndex="7" GridPane.columnIndex="0" />
+                <CheckBox fx:id="chActivo" selected="true" GridPane.rowIndex="7" GridPane.columnIndex="1" />
             </GridPane>
 
             <HBox spacing="8">
@@ -53,6 +56,7 @@
                     <TableColumn fx:id="colApellido" text="Apellido" />
                     <TableColumn fx:id="colDocumento" text="Documento" />
                     <TableColumn fx:id="colEmail" text="Email" />
+                    <TableColumn fx:id="colDireccion" text="Dirección" />
                     <TableColumn fx:id="colTelefono" text="Teléfono" />
                 </columns>
             </TableView>

@@ -20,6 +20,7 @@ public class EstudianteMapper {
 		dto.setNumeroDocumento(e.getNumeroDocumento());
 		dto.setTelefono(e.getTelefono());
 		dto.setEmail(e.getEmail());
+		 dto.setDireccion(e.getDireccion());
 		dto.setActivo(e.isActivo());
 		dto.setFechaRegistro(e.getFechaRegistro());
 		dto.setFechaBaja(e.getFechaBaja());
@@ -36,6 +37,7 @@ public class EstudianteMapper {
 		e.setNumeroDocumento(dto.getNumeroDocumento());
 		e.setTelefono(dto.getTelefono());
 		e.setEmail(dto.getEmail());
+		 e.setDireccion(dto.getDireccion());
 		e.setActivo(dto.isActivo());
 		// fechas: mantener fechaRegistro si ya existe o setear hoy si es null
 		e.setFechaRegistro(dto.getFechaRegistro() == null ? LocalDate.now() : dto.getFechaRegistro());

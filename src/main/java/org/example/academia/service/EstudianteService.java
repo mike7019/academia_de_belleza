@@ -33,10 +33,16 @@ public class EstudianteService {
 	 * - numeroDocumento obligatorio y único
 	 */
 	public EstudianteDTO save(EstudianteDTO dto) {
-		authorizationService.requirePermission("ESTUDIANTE_CREAR");
 
 		if (dto == null) {
 			throw new BusinessException("Datos de estudiante no proporcionados");
+		}
+
+		// Verificación de permisos por operación: crear o editar
+		if (dto.getId() == null) {
+			authorizationService.requirePermission("ESTUDIANTE_CREAR");
+		} else {
+			authorizationService.requirePermission("ESTUDIANTE_EDITAR");
 		}
 		if (dto.getNombre() == null || dto.getNombre().isBlank()) {
 			throw new BusinessException("El nombre es obligatorio");
