@@ -28,7 +28,11 @@
                 <ComboBox fx:id="cbTipoDocumento" GridPane.rowIndex="2" GridPane.columnIndex="1" />
 
                 <Label text="Número Documento:" GridPane.rowIndex="3" GridPane.columnIndex="0" />
-                <TextField fx:id="tfNumeroDocumento" GridPane.rowIndex="3" GridPane.columnIndex="1" />
+                <VBox spacing="2" GridPane.rowIndex="3" GridPane.columnIndex="1">
+                    <TextField fx:id="tfNumeroDocumento" />
+                    <!-- Label para mostrar errores/duplicados junto al campo documento -->
+                    <Label fx:id="lblDocError" textFill="red" style="-fx-font-size: 11px;" />
+                </VBox>
 
                 <Label text="Teléfono:" GridPane.rowIndex="4" GridPane.columnIndex="0" />
                 <TextField fx:id="tfTelefono" GridPane.rowIndex="4" GridPane.columnIndex="1" />
