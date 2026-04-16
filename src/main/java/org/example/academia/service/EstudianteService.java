@@ -8,6 +8,7 @@ import org.example.academia.repository.AuditoriaRepository;
 import org.example.academia.domain.entity.Auditoria;
 import org.example.academia.security.SessionManager;
 import org.example.academia.security.AuthorizationService;
+import org.example.academia.security.AuthException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -107,6 +108,18 @@ public class EstudianteService {
 		return repository.findById(id).map(EstudianteMapper::toDTO).orElse(null);
 	}
 
+	/**
+	 * Buscar estudiante por número de documento (exacto). Devuelve null si no existe.
+	 * Requiere permiso de lectura: ESTUDIANTE_VER o ESTUDIANTE_LISTAR.
+	 */
+	public EstudianteDTO findByNumeroDocumento(String numeroDocumento) {
+		if (numeroDocumento == null || numeroDocumento.isBlank()) return null;
+		if (!authorizationService.hasPermission("ESTUDIANTE_VER") && !authorizationService.hasPermission("ESTUDIANTE_LISTAR")) {
+			throw new AuthException("Permiso denegado: ESTUDIANTE_VER o ESTUDIANTE_LISTAR");
+		}
+		return repository.findByNumeroDocumento(numeroDocumento).map(EstudianteMapper::toDTO).orElse(null);
+	}
+
 	public List<EstudianteDTO> findAll() {
 		return repository.findAll().stream().map(EstudianteMapper::toDTO).collect(Collectors.toList());
 	}
@@ -124,8 +137,11 @@ public class EstudianteService {
 	 */
 	public PaginatedResult<EstudianteDTO> search(String nombre, String apellido, String numeroDocumento, Boolean activo,
 												  int page, int size, String sortBy, boolean asc) {
-		// Usar el permiso existente en los seeds: ESTUDIANTE_VER
-		authorizationService.requirePermission("ESTUDIANTE_VER");
+		// Compatibilidad: aceptar codigo ESTUDIANTE_VER (seed V5) o ESTUDIANTE_LISTAR (seed V6).
+		// Si el usuario no tiene ninguno de los dos permisos, lanzar AuthException.
+		if (!authorizationService.hasPermission("ESTUDIANTE_VER") && !authorizationService.hasPermission("ESTUDIANTE_LISTAR")) {
+			throw new AuthException("Permiso denegado: ESTUDIANTE_VER o ESTUDIANTE_LISTAR");
+		}
 
 		if (page < 0) page = 0;
 		if (size <= 0) size = 100; // valor por defecto razonable

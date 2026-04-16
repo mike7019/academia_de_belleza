@@ -36,6 +36,7 @@ public class EstudianteController {
     @FXML private Button btnGuardar;
     @FXML private Button btnNuevo;
     @FXML private Label lblMensaje;
+    @FXML private Label lblDocError;
 
     @FXML private TableView<EstudianteDTO> tblEstudiantes;
     @FXML private TableColumn<EstudianteDTO, Long> colId;
@@ -86,6 +87,12 @@ public class EstudianteController {
 
         cbTipoDocumento.setItems(FXCollections.observableArrayList("DNI", "PASAPORTE", "LIBRETA"));
 
+        // Inicialmente ocultar el label de error de documento
+        if (lblDocError != null) {
+            lblDocError.setText("");
+            lblDocError.setVisible(false);
+        }
+
         // Configurar columnas (usamos properties directas por nombres de getters)
         colId.setCellValueFactory(cell -> new javafx.beans.property.SimpleObjectProperty<>(cell.getValue().getId()));
         colNombre.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(cell.getValue().getNombre()));
@@ -124,6 +131,13 @@ public class EstudianteController {
             pauseDocumento.playFromStart();
         });
 
+        // Verificar duplicado al perder foco en el campo de documento
+        tfNumeroDocumento.focusedProperty().addListener((obs, oldV, newV) -> {
+            if (!newV) { // perdió foco
+                checkDuplicate();
+            }
+        });
+
         // Mantener filtrado inmediato para dirección (menos usado para búsqueda rápida)
         tfDireccion.textProperty().addListener((obs, oldV, newV) -> { currentPage = 0; filtrar(); });
 
@@ -150,6 +164,27 @@ public class EstudianteController {
 
         cargarTodos();
         filtrar();
+    }
+
+    private void checkDuplicate() {
+        String doc = tfNumeroDocumento.getText() == null ? null : tfNumeroDocumento.getText().trim();
+        if (doc == null || doc.isBlank()) return;
+        try {
+            EstudianteDTO found = estudianteService.findByNumeroDocumento(doc);
+            if (found != null) {
+                lblDocError.setText("Ya existe estudiante con documento " + doc + ": " + found.getNombre() + " " + found.getApellido());
+                lblDocError.setVisible(true);
+                // Estilo claro (rojo) aplicado via FXML; también asegurar accesibilidad
+                lblDocError.setStyle("-fx-text-fill: #b00020; -fx-font-size: 11px;");
+            } else {
+                lblDocError.setText("");
+                lblDocError.setVisible(false);
+            }
+        } catch (Exception ex) {
+            // Si hay error de autorización u otro, mostrar en el label de documento para situarlo junto al campo
+            lblDocError.setText(ex.getMessage());
+            lblDocError.setVisible(true);
+        }
     }
 
     private void cargarTodos() {
@@ -249,6 +284,10 @@ public class EstudianteController {
         tfDireccion.clear();
         tfEmail.clear();
         chActivo.setSelected(true);
+        if (lblDocError != null) {
+            lblDocError.setText("");
+            lblDocError.setVisible(false);
+        }
     }
 }
 
