@@ -18,10 +18,6 @@
             <Label text="Dashboard" styleClass="topbar-subtitle" />
             <Pane HBox.hgrow="ALWAYS" />
             <Label fx:id="usuarioLabel" text="Usuario: invitado" styleClass="topbar-user" />
-
-            <!-- Label SOLO DE PRUEBA para mostrar el rol -->
-            <Label fx:id="rolLabel" text="Rol: ?" styleClass="topbar-user" />
-
             <Button text="Cerrar sesión" onAction="#onLogout" styleClass="logout-button" />
         </HBox>
     </top>
