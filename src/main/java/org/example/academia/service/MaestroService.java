@@ -16,6 +16,8 @@ import java.util.Optional;
  */
 public class MaestroService {
 
+    private static final String PERMISO_MAESTRO_VER = "MAESTRO_VER";
+
     private final MaestroRepository maestroRepository;
     private final AuthorizationService authorizationService;
 
@@ -31,7 +33,7 @@ public class MaestroService {
      * @return un Optional con el maestro si existe y está activo, vacío en caso contrario.
      */
     public Optional<Maestro> buscarPorDocumento(String numeroDocumento) {
-        authorizationService.requirePermission("MAE_BUSCAR"); // Si aplica
+        authorizationService.requirePermission(PERMISO_MAESTRO_VER);
         return maestroRepository.findByNumeroDocumento(numeroDocumento);
     }
 
@@ -41,7 +43,7 @@ public class MaestroService {
      * @return una lista de maestros con activo = true.
      */
     public List<Maestro> listarMaestrosActivos() {
-        authorizationService.requirePermission("MAE_LISTAR"); // Si aplica
+        authorizationService.requirePermission(PERMISO_MAESTRO_VER);
         return maestroRepository.findByActivoTrue();
     }
 
