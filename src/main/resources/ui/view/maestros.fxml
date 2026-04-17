@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
 <StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="org.example.academia.ui.controller.MaestroController">
-
-    <VBox alignment="CENTER" spacing="10.0" styleClass="content-card">
-        <Label text="Módulo Maestros" styleClass="content-title"/>
-        <Label text="Pantalla de gestión de maestros/profesores (placeholder)." styleClass="content-subtitle"/>
-    </VBox>
-
+           fx:id="contentPane"
+           fx:controller="org.example.academia.ui.controller.MaestroController"
+           styleClass="content-pane"
+           alignment="CENTER"
+           prefWidth="Infinity" prefHeight="Infinity"
+           maxWidth="Infinity" maxHeight="Infinity">
+    <fx:include fx:id="moduleCard" source="components/module-card.fxml"/>
 </StackPane>
 

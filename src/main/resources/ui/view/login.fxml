@@ -4,12 +4,15 @@
 <?import javafx.scene.layout.*?>
 
 <StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:id="contentPane"
            fx:controller="org.example.academia.ui.controller.LoginController"
            stylesheets="@../styles/dashboard.css"
-           styleClass="content-pane">
-
-    <!-- Tarjeta de login reutilizando el mismo estilo que el dashboard -->
-    <VBox alignment="CENTER" spacing="10.0" styleClass="content-card">
+           styleClass="content-pane"
+           alignment="CENTER"
+           prefWidth="Infinity" prefHeight="Infinity"
+           maxWidth="Infinity" maxHeight="Infinity">
+    <VBox alignment="CENTER" spacing="12.0" styleClass="content-card"
+          maxWidth="Infinity" maxHeight="Infinity">
         <Label text="Academia de Belleza" styleClass="content-title"/>
         <TextField fx:id="usernameField" promptText="Usuario" maxWidth="200"/>
         <PasswordField fx:id="passwordField" promptText="Contraseña" maxWidth="200"/>

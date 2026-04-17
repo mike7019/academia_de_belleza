@@ -111,6 +111,10 @@
   -fx-background-repeat: no-repeat;
 }
 
+.module-root {
+  -fx-padding: 18;
+}
+
 .content-card {
   /* Panel principal semitransparente para que se aprecie la imagen de fondo */
   -fx-background-color: rgba(255, 255, 255, 0.85);
@@ -121,6 +125,11 @@
   /* Hacer que el panel crezca para llenar la mayor parte del área central */
   -fx-max-width: Infinity;
   -fx-max-height: Infinity;
+}
+
+.module-card {
+  -fx-alignment: center;
+  -fx-fill-width: true;
 }
 
 .content-title {

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
@@ -25,7 +24,7 @@
     <!-- Sidebar de navegación -->
     <left>
         <VBox spacing="8.0" prefWidth="220.0" styleClass="sidebar">
-            <Label text="NAVIGACIÓN" styleClass="sidebar-header" />
+            <Label text="NAVEGACIÓN" styleClass="sidebar-header" />
 
             <Button fx:id="dashboardButton" text="Dashboard" onAction="#onDashboard" maxWidth="Infinity"
                     styleClass="sidebar-button">
@@ -87,9 +86,10 @@
 
     <!-- Área de contenido dinámico -->
     <center>
-        <StackPane fx:id="contentPane" styleClass="content-pane">
+        <StackPane fx:id="contentPane" styleClass="content-pane" alignment="CENTER">
             <VBox spacing="12.0" styleClass="content-card"
-                  maxWidth="Infinity" maxHeight="Infinity">                <Label text="Bienvenido a la Academia de Belleza" styleClass="content-title" />
+                  maxWidth="Infinity" maxHeight="Infinity">
+                <Label text="Bienvenido a la Academia de Belleza" styleClass="content-title" />
                 <Label text="Selecciona un módulo del menú lateral para comenzar." wrapText="true"
                        styleClass="content-subtitle" />
             </VBox>

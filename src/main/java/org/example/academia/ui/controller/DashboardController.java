@@ -3,7 +3,6 @@ package org.example.academia.ui.controller;
 import javafx.animation.FadeTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -162,6 +161,8 @@ public class DashboardController {
 
         VBox card = new VBox(8.0, title, subtitle);
         card.getStyleClass().add("content-card");
+        card.setAlignment(javafx.geometry.Pos.CENTER);
+        card.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
         setContent(card);
     }
@@ -177,7 +178,6 @@ public class DashboardController {
         node.setOpacity(0);
         contentPane.getChildren().setAll(node);
 
-        // Intentar que el contenido cargado llene todo el área disponible del centro
         if (node instanceof Region region) {
             region.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             region.prefWidthProperty().bind(contentPane.widthProperty());
