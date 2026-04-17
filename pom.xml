@@ -16,6 +16,8 @@
         <!-- Versiones de dependencias -->
         <javafx.version>21.0.2</javafx.version>
         <javafx.maven.plugin.version>0.0.8</javafx.maven.plugin.version>
+        <!-- Plataforma de JavaFX: win, linux, mac (ajusta según tu SO) -->
+        <javafx.platform>win</javafx.platform>
         <hibernate.version>6.4.4.Final</hibernate.version>
         <postgresql.version>42.7.3</postgresql.version>
         <flyway.version>10.10.0</flyway.version>
@@ -32,11 +34,13 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
             <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
         </dependency>
 
         <!-- JPA / Hibernate -->
@@ -77,6 +81,13 @@
             <groupId>org.mindrot</groupId>
             <artifactId>jbcrypt</artifactId>
             <version>0.4</version>
+        </dependency>
+
+        <!-- Jakarta Mail para envío de correos (recuperación de contraseña) -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>jakarta.mail</artifactId>
+            <version>2.0.1</version>
         </dependency>
 
         <!-- JasperReports para reportes -->

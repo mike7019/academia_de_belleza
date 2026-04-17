@@ -43,6 +43,9 @@ public class Usuario {
 	@Column(name = "intentos_fallidos", nullable = false)
 	private int intentosFallidos = 0;
 
+	@Column(name = "requiere_cambio_contrasena", nullable = false)
+	private boolean requiereCambioContrasena = false;
+
 	@Column(name = "ultimo_acceso")
 	private LocalDateTime ultimoAcceso;
 

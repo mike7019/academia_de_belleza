@@ -1,70 +1,191 @@
-/* Estilos para el dashboard KPI cards */
-.kpi-card {
-	-fx-background-color: linear-gradient(#ffffff, #f7fbff);
-	-fx-background-radius: 8;
-	-fx-border-radius: 8;
-	-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0.0, 0, 2);
-	-fx-padding: 8 10; /* menor padding para tarjetas más compactas */
-	-fx-pref-height: 56; /* altura reducida */
+.root-pane {
+  -fx-background-color: #f3f4f6; /* Fallback background */
+  -fx-font-family: "Segoe UI", system-ui, sans-serif;
 }
 
-.kpi-title {
-	-fx-font-size: 11px;
-	-fx-text-fill: #7f8c8d;
+/* Topbar */
+.topbar {
+    -fx-padding: 12 20 12 20;
+    -fx-background-color: #ffffff;
+    -fx-spacing: 12;
+    -fx-alignment: CENTER_LEFT;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.08), 10, 0, 0, 2);
 }
 
-.kpi-value {
-	-fx-font-size: 16px;
-	-fx-font-weight: bold;
-	-fx-text-fill: #2c3e50;
+.topbar-title {
+    -fx-text-fill: #111827; /* Text primary */
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
 }
 
-/* Row spacing responsive */
-#kpiRow {
-	-fx-padding: 12 18 12 18;
+.topbar-subtitle {
+    -fx-text-fill: #6b7280; /* Text muted */
+    -fx-font-size: 14px;
 }
 
-/* Ajustes para pantallas pequeñas */
-@media screen and (max-width: 800px) {
-	.kpi-card {
-		-fx-pref-width: 160;
-	}
+.topbar-separator {
+    -fx-text-fill: #d1d5db;
 }
 
-/* Paleta general y tipografía */
-root {
-	-fx-font-family: "Segoe UI", "Helvetica Neue", Arial;
+.topbar-user {
+    -fx-text-fill: #4b5563;
+    -fx-font-size: 13px;
 }
 
-/* Left menu styles */
-VBox > Button {
-	-fx-background-color: transparent;
-	-fx-text-fill: #34495e;
-	-fx-padding: 10 8;
-	-fx-alignment: CENTER_LEFT;
+.logout-button {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: white;
+    -fx-padding: 6 14 6 14;
+    -fx-background-radius: 8;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
 }
 
-VBox > Button:hover {
-	-fx-background-color: rgba(41,128,185,0.08);
-	-fx-text-fill: #1f618d;
+.logout-button:hover {
+    -fx-background-color: #b91c1c;
 }
 
-/* KPI card colored variants (useful to differentiate) */
-.kpi-card.cursos { -fx-background-color: linear-gradient(#e8f8ff, #ffffff); }
-.kpi-card.cupos { -fx-background-color: linear-gradient(#f7ffef, #ffffff); }
-
-/* Mini chart pane styling */
-#miniChartPane {
-	-fx-background-color: transparent;
+/* Sidebar */
+.sidebar {
+    -fx-padding: 20 16 20 16;
+    -fx-spacing: 8;
+    -fx-background-color: #1f2937; /* Sidebar background */
+    -fx-pref-width: 220;
 }
 
-/* Hover elevación para cards */
-.kpi-card:hover {
-	-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.14), 16, 0.0, 0, 4);
-	-fx-translate-y: -2;
+.sidebar-header {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+    -fx-padding: 0 0 8 4;
 }
 
+.sidebar-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e5e7eb;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 8 10 8 10;
+    -fx-background-radius: 8;
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+    -fx-graphic-text-gap: 10;
+    -fx-cursor: hand;
+}
 
+/* Asegura color de texto consistente en labels internos */
+.sidebar-button .label {
+    -fx-text-fill: #e5e7eb;
+}
 
+.sidebar-icon {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 14px;
+}
 
+.sidebar-button:hover {
+    -fx-background-color: #374151;
+}
+
+.sidebar-button-active {
+    -fx-background-color: #2563eb; /* Active item */
+    -fx-text-fill: white;
+}
+
+.sidebar-button-active .label {
+    -fx-text-fill: white;
+}
+
+.sidebar-button-active .sidebar-icon {
+    -fx-text-fill: white;
+}
+
+/* Content area */
+.content-pane {
+  /* Sin padding interno; el margen lo gestiona el controlador vía StackPane.setMargin */
+  -fx-padding: 0;
+  /* Imagen solo en el área central, sin solaparse con el sidebar */
+  -fx-background-image: url("/img/img.png");
+  -fx-background-size: contain; /* mostrar la imagen completa */
+  -fx-background-position: center center;
+  -fx-background-repeat: no-repeat;
+}
+
+/* Login usa la imagen como fondo principal de toda la vista. */
+.login-pane {
+  -fx-padding: 24;
+  -fx-background-image: url("/img/img.png");
+  -fx-background-size: cover;
+  -fx-background-position: center center;
+  -fx-background-repeat: no-repeat;
+}
+
+.login-card {
+  -fx-background-color: rgba(255, 255, 255, 0.75);
+  -fx-background-radius: 14;
+  -fx-padding: 36 40 36 40;
+  -fx-spacing: 12;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 20, 0, 0, 6);
+  -fx-border-color: rgba(255, 255, 255, 0.5);
+  -fx-border-radius: 14;
+  -fx-border-width: 1;
+}
+
+.login-button {
+  -fx-background-color: #2563eb;
+  -fx-text-fill: white;
+  -fx-padding: 8 20 8 20;
+  -fx-background-radius: 8;
+  -fx-font-size: 13px;
+  -fx-font-weight: 600;
+  -fx-cursor: hand;
+}
+
+.login-button:hover {
+  -fx-background-color: #1d4ed8;
+}
+
+.login-link {
+  -fx-text-fill: #2563eb;
+  -fx-font-size: 12px;
+  -fx-underline: true;
+  -fx-cursor: hand;
+  -fx-border-color: transparent;
+}
+
+.login-link:hover {
+  -fx-text-fill: #1d4ed8;
+}
+
+.module-root {
+  -fx-padding: 18;
+}
+
+.content-card {
+  /* Panel principal semitransparente para que se aprecie la imagen de fondo */
+  -fx-background-color: rgba(255, 255, 255, 0.85);
+  -fx-background-radius: 12;
+  -fx-padding: 24;
+  -fx-spacing: 8;
+  -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.08), 16, 0, 0, 4);
+  /* Hacer que el panel crezca para llenar la mayor parte del área central */
+  -fx-max-width: Infinity;
+  -fx-max-height: Infinity;
+}
+
+.module-card {
+  -fx-alignment: center;
+  -fx-fill-width: true;
+}
+
+.content-title {
+    -fx-text-fill: #111827;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.content-subtitle {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 13px;
+}
 

@@ -1,41 +1,36 @@
 package org.example.academia.ui.controller;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.ScaleTransition;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
-import javafx.stage.Stage;
-import org.example.academia.security.SessionManager;
-import org.example.academia.repository.CursoRepositoryImpl;
-import org.example.academia.service.CursoService;
-import org.example.academia.domain.entity.Curso;
-
-import java.io.IOException;
-import javafx.application.Platform;
-import javafx.animation.FadeTransition;
-import javafx.animation.ScaleTransition;
-import org.example.academia.config.DatabaseConfig;
-import org.example.academia.domain.entity.Estudiante;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
-import javafx.scene.control.ListView;
-import java.time.format.DateTimeFormatter;
-import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.util.Duration;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.paint.Color;
+import org.example.academia.config.DatabaseConfig;
+import org.example.academia.domain.entity.Curso;
+import org.example.academia.domain.entity.Estudiante;
+import org.example.academia.repository.CursoRepositoryImpl;
+import org.example.academia.security.SessionManager;
+import org.example.academia.service.CursoService;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import java.io.IOException;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
- * Controlador del Dashboard principal.
- * <p>
- * Muestra el menú de módulos y carga en la región central las vistas FXML
- * correspondientes a Estudiantes, Cursos, Matrículas, Pagos, Nómina y Reportes.
- * No contiene lógica de negocio; solo coordina navegación de UI.
+ * Controlador del Dashboard principal (limpio y centralizado para el módulo dashboard).
  */
 public class DashboardController {
 
@@ -61,83 +56,33 @@ public class DashboardController {
             usuarioLabel.setText("Usuario: " + SessionManager.getInstance().getCurrentUser().getUsername());
         }
 
-        // Para evitar problemas de inyección o timing al cargar vistas
-        // (en algunos entornos el ContentPane puede no estar listo exactamente
-        // en el momento de initialize), ejecutamos las cargas en el hilo de UI
-        // posterior.
+        // Ejecutar carga inicial en el hilo de UI para evitar problemas de timing
         Platform.runLater(() -> {
+            // Cargar vista por defecto (Estudiantes)
+            loadView("/ui/view/estudiantes.fxml");
+            // Actualizar KPIs y lista reciente
+            loadKpiCursos();
+            loadRecentStudents();
+
+            // Aplicar stylesheet del dashboard a la escena si está disponible
             try {
-                // Cargar vista por defecto (Estudiantes) al abrir el Dashboard
-                loadView("/ui/view/estudiantes.fxml");
-
-                // Cargar KPIs de cursos (lista de cursos abiertos y cupos disponibles)
-                loadKpiCursos();
-                // Cargar lista de estudiantes recientes en el header
-                loadRecentStudents();
-
-                // Asegurar que la hoja de estilos del dashboard esté presente en la escena
-                try {
-                    if (contentPane != null && contentPane.getScene() != null) {
+                if (contentPane != null) {
+                    Scene s = contentPane.getScene();
+                    if (s != null) {
                         java.net.URL cssUrl = getClass().getResource("/ui/styles/dashboard.css");
-                        if (cssUrl != null) {
-                            String css = cssUrl.toExternalForm();
-                            if (!contentPane.getScene().getStylesheets().contains(css)) {
-                                contentPane.getScene().getStylesheets().add(css);
-                            }
-                        }
-                    } else if (contentPane != null) {
-                        // si la escena aún no está lista, escuchar cuando esté disponible
-                        contentPane.sceneProperty().addListener((obs, oldScene, newScene) -> {
-                            if (newScene != null) {
-                                try {
-                                    java.net.URL cssUrl = getClass().getResource("/ui/styles/dashboard.css");
-                                    if (cssUrl != null) {
-                                        String css = cssUrl.toExternalForm();
-                                        if (!newScene.getStylesheets().contains(css)) {
-                                            newScene.getStylesheets().add(css);
-                                        }
-                                    }
-                                } catch (Exception ignored) {
-                                }
+                        if (cssUrl != null) s.getStylesheets().add(cssUrl.toExternalForm());
+                    } else {
+                        contentPane.sceneProperty().addListener((obs, oldS, newS) -> {
+                            if (newS != null) {
+                                java.net.URL cssUrl = getClass().getResource("/ui/styles/dashboard.css");
+                                if (cssUrl != null) newS.getStylesheets().add(cssUrl.toExternalForm());
                             }
                         });
                     }
-                } catch (Exception ex) {
-                    // No bloquear la inicialización por temas de estilos
-                    System.err.println("No se pudo aplicar stylesheet del dashboard: " + ex.getMessage());
                 }
-            } catch (Exception ex) {
-                System.err.println("Error inicializando Dashboard: " + ex.getMessage());
-                ex.printStackTrace(System.err);
+            } catch (Exception ignored) {
             }
         });
-    }
-    /**
-     * Carga los estudiantes más recientes en la lista del header.
-     */
-    private void loadRecentStudents() {
-        try {
-            if (recentStudentsList == null) return;
-
-            EntityManager em = DatabaseConfig.createEntityManager();
-            try {
-                TypedQuery<Estudiante> query = em.createQuery("SELECT e FROM Estudiante e ORDER BY e.fechaRegistro DESC", Estudiante.class);
-                query.setMaxResults(6);
-                java.util.List<Estudiante> recientes = query.getResultList();
-
-                recentStudentsList.getItems().clear();
-                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                for (Estudiante s : recientes) {
-                    String name = (s.getNombre() != null ? s.getNombre() : "") + " " + (s.getApellido() != null ? s.getApellido() : "");
-                    String date = s.getFechaRegistro() != null ? s.getFechaRegistro().format(fmt) : "";
-                    recentStudentsList.getItems().add(name + " — " + date);
-                }
-            } finally {
-                em.close();
-            }
-        } catch (Exception ex) {
-            System.err.println("Error cargando estudiantes recientes: " + ex.getMessage());
-        }
     }
 
     @FXML
@@ -177,17 +122,15 @@ public class DashboardController {
 
     @FXML
     private void onLogout() {
-        // Limpiar usuario en sesión y volver a la pantalla de login
-        SessionManager.getInstance().logout();
         try {
+            SessionManager.getInstance().logout();
             Parent root = new FXMLLoader(getClass().getResource("/ui/view/login.fxml")).load();
             Stage stage = (Stage) contentPane.getScene().getWindow();
             stage.setTitle("Academia de Belleza");
             stage.setScene(new Scene(root));
         } catch (IOException e) {
             e.printStackTrace();
-            Label errorLabel = new Label("Error al cerrar sesión");
-            contentPane.getChildren().setAll(errorLabel);
+            if (contentPane != null) contentPane.getChildren().setAll(new Label("Error al cerrar sesión"));
         }
     }
 
@@ -195,49 +138,71 @@ public class DashboardController {
         try {
             Parent view = FXMLLoader.load(getClass().getResource(fxmlPath));
             if (contentPane != null) {
-                contentPane.getChildren().setAll(view);
+                setContent(view);
             } else {
-                // Si por alguna razón contentPane no está disponible, lo registramos
                 System.err.println("Warning: contentPane is null, cannot set view: " + fxmlPath);
             }
         } catch (IOException e) {
-            System.err.println("Error al cargar FXML: " + fxmlPath + " -> " + e.getMessage());
-            e.printStackTrace(System.err);
-            // En caso de error, mostramos un mensaje simple en el área central (si está disponible)
-            if (contentPane != null) {
-                Label errorLabel = new Label("No se pudo cargar la vista: " + fxmlPath);
-                contentPane.getChildren().setAll(errorLabel);
-            }
+            e.printStackTrace();
+            if (contentPane != null) contentPane.getChildren().setAll(new Label("No se pudo cargar la vista: " + fxmlPath));
         }
     }
 
-    /**
-     * Carga los KPIs de cursos desde la capa de servicio y actualiza las labels
-     * definidas en el FXML (se busca por id en la escena para evitar acoplar
-     * campos nuevos en la clase y mantener compatibilidad).
-     */
+    private void setContent(Node node) {
+        if (contentPane == null || node == null) return;
+        node.setOpacity(0);
+        contentPane.getChildren().setAll(node);
+        if (node instanceof Region region) {
+            region.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+            region.prefWidthProperty().bind(contentPane.widthProperty());
+            region.prefHeightProperty().bind(contentPane.heightProperty());
+        }
+        FadeTransition fade = new FadeTransition(Duration.millis(200), node);
+        fade.setFromValue(0.0);
+        fade.setToValue(1.0);
+        fade.play();
+    }
+
     private void loadKpiCursos() {
         try {
             CursoService cursoService = new CursoService(new CursoRepositoryImpl());
-            java.util.List<Curso> abiertos = cursoService.getCursosAbiertos();
+            List<Curso> abiertos = cursoService.getCursosAbiertos();
             long totalCupos = cursoService.getTotalCuposDisponibles();
 
-            // Actualizar labels inyectadas por FXML (si están presentes)
             if (cursosAbiertosLabel != null) {
-                cursosAbiertosLabel.setText("Cursos abiertos: " + abiertos.size());
-                // pequeño efecto visual
-                DropShadow ds = new DropShadow(8, Color.web("#2ecc71"));
-                cursosAbiertosLabel.setEffect(ds);
+                cursosAbiertosLabel.setText(String.valueOf(abiertos.size()));
             }
             if (cuposDisponiblesLabel != null) {
-                cuposDisponiblesLabel.setText("Cupos disponibles: " + totalCupos);
-                // animación de entrada
-                ScaleTransition st = new ScaleTransition(Duration.millis(600), cuposDisponiblesLabel);
-                st.setFromX(0.8);
-                st.setFromY(0.8);
+                cuposDisponiblesLabel.setText(String.valueOf(totalCupos));
+                ScaleTransition st = new ScaleTransition(Duration.millis(400), cuposDisponiblesLabel);
+                st.setFromX(0.9);
+                st.setFromY(0.9);
                 st.setToX(1.0);
                 st.setToY(1.0);
                 st.play();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void loadRecentStudents() {
+        try {
+            if (recentStudentsList == null) return;
+            EntityManager em = DatabaseConfig.createEntityManager();
+            try {
+                TypedQuery<Estudiante> query = em.createQuery("SELECT e FROM Estudiante e ORDER BY e.fechaRegistro DESC", Estudiante.class);
+                query.setMaxResults(6);
+                List<Estudiante> recientes = query.getResultList();
+                recentStudentsList.getItems().clear();
+                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                for (Estudiante s : recientes) {
+                    String name = (s.getNombre() != null ? s.getNombre() : "") + " " + (s.getApellido() != null ? s.getApellido() : "");
+                    String date = s.getFechaRegistro() != null ? s.getFechaRegistro().format(fmt) : "";
+                    recentStudentsList.getItems().add(name + " — " + date);
+                }
+            } finally {
+                em.close();
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -248,31 +213,13 @@ public class DashboardController {
     private void onKpiCursosClicked(MouseEvent event) {
         try {
             CursoService cursoService = new CursoService(new CursoRepositoryImpl());
-            java.util.List<Curso> abiertos = cursoService.getCursosAbiertos();
-
+            List<Curso> abiertos = cursoService.getCursosAbiertos();
             ListView<String> listView = new ListView<>();
             abiertos.stream().map(Curso::getNombre).forEach(listView.getItems()::add);
             listView.setPrefHeight(300);
-
-            Button cerrar = new Button("Volver");
-            cerrar.setOnAction(ae -> loadView("/ui/view/estudiantes.fxml"));
-
-            VBox card = new VBox(10);
-            card.setStyle("-fx-background-color: white; -fx-padding: 16; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.12), 10, 0, 0, 2);");
-            Label title = new Label("Cursos abiertos");
-            title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
-            card.getChildren().addAll(title, listView, cerrar);
-
-            // animación de fade-in
-            FadeTransition ft = new FadeTransition(Duration.millis(400), card);
-            ft.setFromValue(0);
-            ft.setToValue(1);
-                    if (contentPane != null) {
-                        contentPane.getChildren().setAll(card);
-                    } else {
-                        System.err.println("contentPane is null when attempting to show cursos abiertos card");
-                    }
-            ft.play();
+            VBox card = new VBox(10, new Label("Cursos abiertos"), listView);
+            card.setStyle("-fx-background-color: white; -fx-padding: 12; -fx-border-radius: 8; -fx-background-radius: 8;");
+            if (contentPane != null) contentPane.getChildren().setAll(card);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -281,7 +228,6 @@ public class DashboardController {
     @FXML
     private void onKpiCuposClicked(MouseEvent event) {
         try {
-            // animación destacada cuando se hace click en cupos
             if (cuposDisponiblesLabel != null) {
                 ScaleTransition st = new ScaleTransition(Duration.millis(200), cuposDisponiblesLabel);
                 st.setFromX(1.0);
@@ -296,7 +242,8 @@ public class DashboardController {
             ex.printStackTrace();
         }
     }
-
 }
+
+
 
 

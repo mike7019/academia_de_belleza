@@ -1,6 +1,7 @@
 package org.example.academia.ui.controller;
 
 import javafx.fxml.FXML;
+import org.example.academia.ui.controller.components.ModuleCardController;
 
 /**
  * Controlador placeholder para el módulo de Caja/Pagos.
@@ -11,8 +12,14 @@ import javafx.fxml.FXML;
 public class CajaController {
 
     @FXML
+    private ModuleCardController moduleCardController;
+
+    @FXML
     private void initialize() {
-        // Inicialización futura de bindings y carga de datos.
+        moduleCardController.setTexts(
+                "Módulo Pagos / Caja",
+                "Pantalla de caja y pagos de estudiantes (placeholder)."
+        );
     }
 }
 

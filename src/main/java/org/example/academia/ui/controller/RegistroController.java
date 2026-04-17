@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import org.example.academia.service.UsuarioService;
@@ -15,10 +16,11 @@ import java.io.IOException;
 
 /**
  * Controlador de la pantalla de registro de usuario.
- *
- * Implementa el front de registro y delega la lógica de persistencia en UsuarioService.
  */
 public class RegistroController {
+
+    @FXML
+    private StackPane contentPane;
 
     @FXML
     private TextField nombreCompletoField;
@@ -76,14 +78,14 @@ public class RegistroController {
     @FXML
     private void onBackToLogin() {
         try {
-            Stage stage = (Stage) messageLabel.getScene().getWindow();
+            Stage stage = (Stage) contentPane.getScene().getWindow();
             Parent root = new FXMLLoader(getClass().getResource("/ui/view/login.fxml")).load();
-            stage.setScene(new Scene(root));
+            double width = stage.getWidth() > 0 ? stage.getWidth() : 1040;
+            double height = stage.getHeight() > 0 ? stage.getHeight() : 862;
+            stage.setScene(new Scene(root, width, height));
         } catch (IOException e) {
             e.printStackTrace();
             messageLabel.setText("Error al volver al login");
         }
     }
 }
-
-
