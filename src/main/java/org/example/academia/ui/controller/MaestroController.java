@@ -3,9 +3,11 @@ package org.example.academia.ui.controller;
 import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
@@ -33,9 +35,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Controlador para el módulo de Maestros/Profesores.
+ * Controlador para el modulo de Maestros/Profesores.
  *
- * Gestiona listado, creación, edición e inactivación de maestros.
+ * Gestiona listado, creacion, edicion e inactivacion de maestros.
  */
 public class MaestroController {
 
@@ -106,7 +108,6 @@ public class MaestroController {
         filtroEstadoCombo.setItems(FXCollections.observableArrayList(ESTADO_ACTIVOS, ESTADO_INACTIVOS, ESTADO_TODOS));
         filtroEstadoCombo.setValue(ESTADO_ACTIVOS);
 
-        // Filtrado reactivo: refresca listado mientras se escribe.
         filtroNombreField.textProperty().addListener((obs, oldVal, newVal) -> cargarMaestros(0));
         filtroDocumentoField.textProperty().addListener((obs, oldVal, newVal) -> cargarMaestros(0));
         filtroEstadoCombo.valueProperty().addListener((obs, oldVal, newVal) -> cargarMaestros(0));
@@ -117,7 +118,6 @@ public class MaestroController {
             }
         });
 
-        // Tooltip reutilizable para mensajes breves (toast).
         notificacionTooltip = new Tooltip();
         notificacionTooltip.setAutoHide(true);
 
@@ -172,11 +172,11 @@ public class MaestroController {
 
         Alert confirmacion = new Alert(
                 Alert.AlertType.CONFIRMATION,
-                "¿Está seguro de inactivar al maestro " + seleccionado.getNombre() + " " + seleccionado.getApellido() + "?",
+                "Esta seguro de inactivar al maestro " + seleccionado.getNombre() + " " + seleccionado.getApellido() + "?",
                 ButtonType.YES,
                 ButtonType.NO
         );
-        confirmacion.setHeaderText("Confirmar inactivación");
+        confirmacion.setHeaderText("Confirmar inactivacion");
 
         Optional<ButtonType> resultado = confirmacion.showAndWait();
         if (resultado.isPresent() && resultado.get() == ButtonType.YES) {
@@ -241,11 +241,11 @@ public class MaestroController {
         grid.add(tipoDocumentoCombo, 1, 2);
         grid.add(new Label("Documento*"), 0, 3);
         grid.add(documentoField, 1, 3);
-        grid.add(new Label("Teléfono"), 0, 4);
+        grid.add(new Label("Telefono"), 0, 4);
         grid.add(telefonoField, 1, 4);
         grid.add(new Label("Email"), 0, 5);
         grid.add(emailField, 1, 5);
-        grid.add(new Label("Dirección"), 0, 6);
+        grid.add(new Label("Direccion"), 0, 6);
         grid.add(direccionField, 1, 6);
         grid.add(new Label("Tipo pago*"), 0, 7);
         grid.add(tipoPagoCombo, 1, 7);
@@ -267,6 +267,11 @@ public class MaestroController {
         Label ayudaPagoLabel = new Label("Seleccione el tipo de pago para mostrar el campo correspondiente.");
         ayudaPagoLabel.setWrapText(true);
         grid.add(ayudaPagoLabel, 0, 12, 2, 1);
+
+        Label errorFormularioLabel = new Label();
+        errorFormularioLabel.setWrapText(true);
+        errorFormularioLabel.setStyle("-fx-text-fill: #d32f2f;");
+        grid.add(errorFormularioLabel, 0, 13, 2, 1);
 
         tipoPagoCombo.valueProperty().addListener((obs, oldVal, newVal) ->
                 actualizarCamposPago(
@@ -296,51 +301,192 @@ public class MaestroController {
 
         dialog.getDialogPane().setContent(grid);
 
+        Button guardarButton = (Button) dialog.getDialogPane().lookupButton(guardarBtn);
+        final MaestroDTO[] dtoResultado = new MaestroDTO[1];
+
+        Runnable refrescarEstadoGuardado = () -> {
+            String error = validarFormularioMaestro(
+                    nombreField,
+                    apellidoField,
+                    tipoDocumentoCombo,
+                    documentoField,
+                    tipoPagoCombo,
+                    tarifaHoraField,
+                    salarioMensualField,
+                    tarifaPorCursoField,
+                    porcentajeField
+            );
+            boolean invalido = error != null;
+            guardarButton.setDisable(invalido);
+            errorFormularioLabel.setText(invalido ? error : "");
+        };
+
+        nombreField.textProperty().addListener((obs, oldVal, newVal) -> refrescarEstadoGuardado.run());
+        apellidoField.textProperty().addListener((obs, oldVal, newVal) -> refrescarEstadoGuardado.run());
+        tipoDocumentoCombo.getEditor().textProperty().addListener((obs, oldVal, newVal) -> refrescarEstadoGuardado.run());
+        documentoField.textProperty().addListener((obs, oldVal, newVal) -> refrescarEstadoGuardado.run());
+        tipoPagoCombo.valueProperty().addListener((obs, oldVal, newVal) -> refrescarEstadoGuardado.run());
+        tarifaHoraField.textProperty().addListener((obs, oldVal, newVal) -> refrescarEstadoGuardado.run());
+        salarioMensualField.textProperty().addListener((obs, oldVal, newVal) -> refrescarEstadoGuardado.run());
+        tarifaPorCursoField.textProperty().addListener((obs, oldVal, newVal) -> refrescarEstadoGuardado.run());
+        porcentajeField.textProperty().addListener((obs, oldVal, newVal) -> refrescarEstadoGuardado.run());
+
+        guardarButton.addEventFilter(ActionEvent.ACTION, event -> {
+            try {
+                dtoResultado[0] = construirMaestroDesdeFormulario(
+                        base,
+                        nombreField,
+                        apellidoField,
+                        tipoDocumentoCombo,
+                        documentoField,
+                        telefonoField,
+                        emailField,
+                        direccionField,
+                        tipoPagoCombo,
+                        tarifaHoraField,
+                        salarioMensualField,
+                        tarifaPorCursoField,
+                        porcentajeField
+                );
+            } catch (BusinessException ex) {
+                errorFormularioLabel.setText(ex.getMessage());
+                event.consume();
+            }
+        });
+
+        refrescarEstadoGuardado.run();
+
         Optional<ButtonType> resultado = dialog.showAndWait();
         if (resultado.isEmpty() || resultado.get() != guardarBtn) {
             return Optional.empty();
         }
 
-        try {
-            MaestroDTO dto = new MaestroDTO();
-            dto.setId(base.getId());
-            dto.setActivo(base.isActivo());
-            dto.setNombre(requerido(nombreField.getText(), "El nombre es obligatorio"));
-            dto.setApellido(requerido(apellidoField.getText(), "El apellido es obligatorio"));
-            dto.setTipoDocumento(requerido(tipoDocumentoCombo.getEditor().getText(), "El tipo de documento es obligatorio"));
-            dto.setNumeroDocumento(requerido(documentoField.getText(), "El documento es obligatorio"));
-            dto.setTelefono(vacioANull(telefonoField.getText()));
-            dto.setEmail(vacioANull(emailField.getText()));
-            dto.setDireccion(vacioANull(direccionField.getText()));
-
-            TipoPagoProfesor tipoPago = tipoPagoCombo.getValue();
-            if (tipoPago == null) {
-                throw new BusinessException("Debe seleccionar una modalidad de pago");
-            }
-            dto.setTipoPagoProfesor(tipoPago);
-
-            switch (tipoPago) {
-                case POR_HORA:
-                    dto.setTarifaHora(decimalRequerido(tarifaHoraField.getText(), "Tarifa por hora"));
-                    break;
-                case FIJO_MENSUAL:
-                    dto.setSalarioMensual(decimalRequerido(salarioMensualField.getText(), "Salario mensual"));
-                    break;
-                case POR_CURSO:
-                    dto.setTarifaPorCurso(decimalRequerido(tarifaPorCursoField.getText(), "Tarifa por curso"));
-                    break;
-                case PORCENTAJE:
-                    dto.setPorcentajePorCurso(decimalRequerido(porcentajeField.getText(), "Porcentaje"));
-                    break;
-                default:
-                    throw new BusinessException("Modalidad de pago no soportada");
-            }
-
-            return Optional.of(dto);
-        } catch (BusinessException ex) {
-            showError(ex.getMessage());
+        if (dtoResultado[0] == null) {
             return Optional.empty();
         }
+        return Optional.of(dtoResultado[0]);
+    }
+
+    private MaestroDTO construirMaestroDesdeFormulario(MaestroDTO base,
+                                                       TextField nombreField,
+                                                       TextField apellidoField,
+                                                       ComboBox<String> tipoDocumentoCombo,
+                                                       TextField documentoField,
+                                                       TextField telefonoField,
+                                                       TextField emailField,
+                                                       TextField direccionField,
+                                                       ComboBox<TipoPagoProfesor> tipoPagoCombo,
+                                                       TextField tarifaHoraField,
+                                                       TextField salarioMensualField,
+                                                       TextField tarifaPorCursoField,
+                                                       TextField porcentajeField) {
+        MaestroDTO dto = new MaestroDTO();
+        dto.setId(base.getId());
+        dto.setActivo(base.isActivo());
+        dto.setNombre(requerido(nombreField.getText(), "El nombre es obligatorio"));
+        dto.setApellido(requerido(apellidoField.getText(), "El apellido es obligatorio"));
+        dto.setTipoDocumento(requerido(tipoDocumentoCombo.getEditor().getText(), "El tipo de documento es obligatorio"));
+        dto.setNumeroDocumento(requerido(documentoField.getText(), "El documento es obligatorio"));
+        dto.setTelefono(vacioANull(telefonoField.getText()));
+        dto.setEmail(vacioANull(emailField.getText()));
+        dto.setDireccion(vacioANull(direccionField.getText()));
+
+        TipoPagoProfesor tipoPago = tipoPagoCombo.getValue();
+        if (tipoPago == null) {
+            throw new BusinessException("Debe seleccionar una modalidad de pago");
+        }
+        dto.setTipoPagoProfesor(tipoPago);
+
+        dto.setTarifaHora(null);
+        dto.setSalarioMensual(null);
+        dto.setTarifaPorCurso(null);
+        dto.setPorcentajePorCurso(null);
+
+        switch (tipoPago) {
+            case POR_HORA:
+                dto.setTarifaHora(decimalPositivoRequerido(tarifaHoraField.getText(), "Tarifa por hora"));
+                break;
+            case FIJO_MENSUAL:
+                dto.setSalarioMensual(decimalPositivoRequerido(salarioMensualField.getText(), "Salario mensual"));
+                break;
+            case POR_CURSO:
+                dto.setTarifaPorCurso(decimalPositivoRequerido(tarifaPorCursoField.getText(), "Tarifa por curso"));
+                break;
+            case PORCENTAJE:
+                dto.setPorcentajePorCurso(porcentajeRequerido(porcentajeField.getText(), "Porcentaje"));
+                break;
+            default:
+                throw new BusinessException("Modalidad de pago no soportada");
+        }
+        return dto;
+    }
+
+    private String validarFormularioMaestro(TextField nombreField,
+                                            TextField apellidoField,
+                                            ComboBox<String> tipoDocumentoCombo,
+                                            TextField documentoField,
+                                            ComboBox<TipoPagoProfesor> tipoPagoCombo,
+                                            TextField tarifaHoraField,
+                                            TextField salarioMensualField,
+                                            TextField tarifaPorCursoField,
+                                            TextField porcentajeField) {
+        if (nombreField.getText() == null || nombreField.getText().isBlank()) {
+            return "El nombre es obligatorio";
+        }
+        if (apellidoField.getText() == null || apellidoField.getText().isBlank()) {
+            return "El apellido es obligatorio";
+        }
+        if (tipoDocumentoCombo.getEditor().getText() == null || tipoDocumentoCombo.getEditor().getText().isBlank()) {
+            return "El tipo de documento es obligatorio";
+        }
+        if (documentoField.getText() == null || documentoField.getText().isBlank()) {
+            return "El documento es obligatorio";
+        }
+
+        TipoPagoProfesor tipoPago = tipoPagoCombo.getValue();
+        if (tipoPago == null) {
+            return "Debe seleccionar una modalidad de pago";
+        }
+
+        switch (tipoPago) {
+            case POR_HORA:
+                return validarDecimalPositivo(tarifaHoraField.getText(), "Tarifa por hora");
+            case FIJO_MENSUAL:
+                return validarDecimalPositivo(salarioMensualField.getText(), "Salario mensual");
+            case POR_CURSO:
+                return validarDecimalPositivo(tarifaPorCursoField.getText(), "Tarifa por curso");
+            case PORCENTAJE:
+                return validarPorcentaje(porcentajeField.getText(), "Porcentaje");
+            default:
+                return "Modalidad de pago no soportada";
+        }
+    }
+
+    private String validarDecimalPositivo(String valor, String nombreCampo) {
+        if (valor == null || valor.isBlank()) {
+            return nombreCampo + " es obligatorio";
+        }
+        try {
+            BigDecimal decimal = new BigDecimal(valor.trim());
+            if (decimal.compareTo(BigDecimal.ZERO) <= 0) {
+                return nombreCampo + " debe ser mayor a 0";
+            }
+            return null;
+        } catch (NumberFormatException ex) {
+            return "Formato numerico invalido en " + nombreCampo;
+        }
+    }
+
+    private String validarPorcentaje(String valor, String nombreCampo) {
+        String error = validarDecimalPositivo(valor, nombreCampo);
+        if (error != null) {
+            return error;
+        }
+        BigDecimal porcentaje = new BigDecimal(valor.trim());
+        if (porcentaje.compareTo(new BigDecimal("100")) > 0) {
+            return nombreCampo + " no puede superar 100";
+        }
+        return null;
     }
 
     private void actualizarCamposPago(TipoPagoProfesor tipoPago,
@@ -410,8 +556,24 @@ public class MaestroController {
         try {
             return new BigDecimal(valor.trim());
         } catch (NumberFormatException ex) {
-            throw new BusinessException("Formato numérico inválido en " + nombreCampo);
+            throw new BusinessException("Formato numerico invalido en " + nombreCampo);
         }
+    }
+
+    private BigDecimal decimalPositivoRequerido(String valor, String nombreCampo) {
+        BigDecimal decimal = decimalRequerido(valor, nombreCampo);
+        if (decimal.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException(nombreCampo + " debe ser mayor a 0");
+        }
+        return decimal;
+    }
+
+    private BigDecimal porcentajeRequerido(String valor, String nombreCampo) {
+        BigDecimal porcentaje = decimalPositivoRequerido(valor, nombreCampo);
+        if (porcentaje.compareTo(new BigDecimal("100")) > 0) {
+            throw new BusinessException(nombreCampo + " no puede superar 100");
+        }
+        return porcentaje;
     }
 
     private MaestroDTO clonarMaestro(MaestroDTO origen) {
