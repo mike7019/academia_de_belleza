@@ -68,4 +68,39 @@ public class MaestroRepositoryImpl implements MaestroRepository {
             return maestro != null ? Optional.of(maestro) : Optional.empty();
         }
     }
+
+    @Override
+    public List<Maestro> search(String nombre, String numeroDocumento, Boolean activo) {
+        try (EntityManager em = DatabaseConfig.createEntityManager()) {
+            StringBuilder jpql = new StringBuilder("SELECT m FROM Maestro m WHERE 1=1");
+
+            boolean filtrarNombre = nombre != null && !nombre.isBlank();
+            boolean filtrarDocumento = numeroDocumento != null && !numeroDocumento.isBlank();
+            boolean filtrarEstado = activo != null;
+
+            if (filtrarNombre) {
+                jpql.append(" AND LOWER(m.nombre) LIKE :nombre");
+            }
+            if (filtrarDocumento) {
+                jpql.append(" AND m.numeroDocumento LIKE :numeroDocumento");
+            }
+            if (filtrarEstado) {
+                jpql.append(" AND m.activo = :activo");
+            }
+            jpql.append(" ORDER BY m.nombre ASC, m.apellido ASC");
+
+            TypedQuery<Maestro> query = em.createQuery(jpql.toString(), Maestro.class);
+            if (filtrarNombre) {
+                query.setParameter("nombre", "%" + nombre.trim().toLowerCase() + "%");
+            }
+            if (filtrarDocumento) {
+                query.setParameter("numeroDocumento", "%" + numeroDocumento.trim() + "%");
+            }
+            if (filtrarEstado) {
+                query.setParameter("activo", activo);
+            }
+
+            return query.getResultList();
+        }
+    }
 }

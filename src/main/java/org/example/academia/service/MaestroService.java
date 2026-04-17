@@ -180,4 +180,17 @@ public class MaestroService {
         maestro.setActivo(false);
         maestroRepository.save(maestro);
     }
+
+    /**
+     * Lista maestros aplicando filtros opcionales de nombre, documento y estado.
+     *
+     * @param nombre filtro por nombre (parcial), opcional.
+     * @param numeroDocumento filtro por documento (parcial), opcional.
+     * @param activo filtro por estado; null para incluir todos.
+     * @return lista de maestros que cumplen los filtros.
+     */
+    public List<Maestro> listarMaestros(String nombre, String numeroDocumento, Boolean activo) {
+        authorizationService.requirePermission(PERMISO_MAESTRO_VER);
+        return maestroRepository.search(nombre, numeroDocumento, activo);
+    }
 }
