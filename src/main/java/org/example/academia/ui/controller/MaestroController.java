@@ -233,6 +233,13 @@ public class MaestroController {
         TextField tarifaPorCursoField = new TextField(base.getTarifaPorCurso() != null ? base.getTarifaPorCurso().toPlainString() : "");
         TextField porcentajeField = new TextField(base.getPorcentajePorCurso() != null ? base.getPorcentajePorCurso().toPlainString() : "");
 
+        // Mantiene dimensiones consistentes para evitar saltos visuales.
+        double pagoFieldWidth = 172;
+        tarifaHoraField.setPrefWidth(pagoFieldWidth);
+        salarioMensualField.setPrefWidth(pagoFieldWidth);
+        tarifaPorCursoField.setPrefWidth(pagoFieldWidth);
+        porcentajeField.setPrefWidth(pagoFieldWidth);
+
         grid.add(new Label("Nombre*"), 0, 0);
         grid.add(nombreField, 1, 0);
         grid.add(new Label("Apellido*"), 0, 1);
@@ -255,23 +262,24 @@ public class MaestroController {
         Label tarifaPorCursoLabel = new Label("Tarifa por curso");
         Label porcentajeLabel = new Label("Porcentaje");
 
+        // Todos los campos dinamicos comparten la misma fila para que no cambie la posicion.
         grid.add(tarifaHoraLabel, 0, 8);
+        grid.add(salarioMensualLabel, 0, 8);
+        grid.add(tarifaPorCursoLabel, 0, 8);
+        grid.add(porcentajeLabel, 0, 8);
         grid.add(tarifaHoraField, 1, 8);
-        grid.add(salarioMensualLabel, 0, 9);
-        grid.add(salarioMensualField, 1, 9);
-        grid.add(tarifaPorCursoLabel, 0, 10);
-        grid.add(tarifaPorCursoField, 1, 10);
-        grid.add(porcentajeLabel, 0, 11);
-        grid.add(porcentajeField, 1, 11);
+        grid.add(salarioMensualField, 1, 8);
+        grid.add(tarifaPorCursoField, 1, 8);
+        grid.add(porcentajeField, 1, 8);
 
         Label ayudaPagoLabel = new Label("Seleccione el tipo de pago para mostrar el campo correspondiente.");
         ayudaPagoLabel.setWrapText(true);
-        grid.add(ayudaPagoLabel, 0, 12, 2, 1);
+        grid.add(ayudaPagoLabel, 0, 9, 2, 1);
 
         Label errorFormularioLabel = new Label();
         errorFormularioLabel.setWrapText(true);
         errorFormularioLabel.setStyle("-fx-text-fill: #d32f2f;");
-        grid.add(errorFormularioLabel, 0, 13, 2, 1);
+        grid.add(errorFormularioLabel, 0, 10, 2, 1);
 
         tipoPagoCombo.valueProperty().addListener((obs, oldVal, newVal) ->
                 actualizarCamposPago(
