@@ -9,8 +9,8 @@
            stylesheets="@../styles/dashboard.css"
            styleClass="login-pane"
            alignment="CENTER"
-           prefWidth="1040" prefHeight="862"
-           minWidth="900" minHeight="746"
+           prefWidth="800" prefHeight="500"
+           minWidth="400" minHeight="350"
            maxWidth="Infinity" maxHeight="Infinity">
     <VBox alignment="CENTER" spacing="14.0" styleClass="login-card"
           prefWidth="380" maxWidth="400" prefHeight="360" maxHeight="380"

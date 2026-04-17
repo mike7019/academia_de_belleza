@@ -25,7 +25,13 @@ public class MainApp extends Application {
 
         Parent root = new FXMLLoader(getClass().getResource("/ui/view/login.fxml")).load();
         primaryStage.setTitle("Academia de Belleza");
-        primaryStage.setScene(new Scene(root));
+        primaryStage.setMinWidth(800);
+        primaryStage.setMinHeight(500);
+        primaryStage.setWidth(1040);
+        primaryStage.setHeight(700);
+        Scene scene = new Scene(root);
+        primaryStage.setScene(scene);
+        primaryStage.centerOnScreen();
         primaryStage.show();
     }
 

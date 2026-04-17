@@ -12,6 +12,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
@@ -187,7 +188,14 @@ public class DashboardController {
         root.getChildren().addAll(title, subtitle, grid, recentTitle, recentList);
         VBox.setVgrow(grid, Priority.ALWAYS);
 
-        setContent(root);
+        ScrollPane scrollPane = new ScrollPane(root);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setStyle("-fx-background-color: transparent;");
+
+        setContent(scrollPane);
     }
 
     private VBox createKpiCard(String icon, String label, String value, String color) {
@@ -295,7 +303,7 @@ public class DashboardController {
             Parent root = new FXMLLoader(getClass().getResource("/ui/view/login.fxml")).load();
             Stage stage = (Stage) contentPane.getScene().getWindow();
             stage.setTitle("Academia de Belleza");
-            stage.setScene(new Scene(root));
+            stage.setScene(new Scene(root, stage.getWidth(), stage.getHeight()));
         } catch (IOException e) {
             e.printStackTrace();
             if (contentPane != null) contentPane.getChildren().setAll(new Label("Error al cerrar sesión"));

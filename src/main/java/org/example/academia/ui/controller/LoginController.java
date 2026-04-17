@@ -60,7 +60,7 @@ public class LoginController {
             Stage stage = (Stage) contentPane.getScene().getWindow();
             Parent root = new FXMLLoader(getClass().getResource("/ui/view/dashboard.fxml")).load();
             stage.setTitle("Academia de Belleza - Dashboard");
-            stage.setScene(new Scene(root, 1100, 700));
+            stage.setScene(new Scene(root, stage.getWidth(), stage.getHeight()));
         } catch (AuthException ex) {
             messageLabel.setTextFill(javafx.scene.paint.Color.RED);
             messageLabel.setText(ex.getMessage());
@@ -146,9 +146,7 @@ public class LoginController {
         try {
             Stage stage = (Stage) contentPane.getScene().getWindow();
             Parent root = new FXMLLoader(getClass().getResource("/ui/view/registro.fxml")).load();
-            double width = stage.getWidth() > 0 ? stage.getWidth() : 1040;
-            double height = stage.getHeight() > 0 ? stage.getHeight() : 862;
-            stage.setScene(new Scene(root, width, height));
+            stage.setScene(new Scene(root, stage.getWidth(), stage.getHeight()));
         } catch (Exception e) {
             e.printStackTrace();
             messageLabel.setTextFill(javafx.scene.paint.Color.RED);

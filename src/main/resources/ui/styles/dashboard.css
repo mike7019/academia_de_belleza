@@ -189,3 +189,11 @@
     -fx-font-size: 13px;
 }
 
+/* Sidebar ScrollPane transparent - hereda fondo del sidebar */
+.sidebar-scroll {
+    -fx-background-color: #1f2937;
+    -fx-background: #1f2937;
+}
+.sidebar-scroll > .viewport {
+    -fx-background-color: #1f2937;
+}
