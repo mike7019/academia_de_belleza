@@ -169,27 +169,6 @@ public class EstudianteRepositoryImpl implements EstudianteRepository {
     }
 
     @Override
-    public Estudiante save(Estudiante estudiante) {
-        EntityManager em = DatabaseConfig.createEntityManager();
-        var tx = em.getTransaction();
-        try {
-            tx.begin();
-            if (estudiante.getId() == null) {
-                em.persist(estudiante);
-            } else {
-                estudiante = em.merge(estudiante);
-            }
-            tx.commit();
-            return estudiante;
-        } catch (RuntimeException ex) {
-            if (tx.isActive()) tx.rollback();
-            throw ex;
-        } finally {
-            em.close();
-        }
-    }
-
-    @Override
     public long countByActivoTrue() {
         EntityManager em = DatabaseConfig.createEntityManager();
         try {

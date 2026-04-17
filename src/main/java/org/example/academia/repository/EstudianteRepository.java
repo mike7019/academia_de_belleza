@@ -2,6 +2,7 @@ package org.example.academia.repository;
 
 import org.example.academia.domain.entity.Estudiante;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,6 +40,8 @@ public interface EstudianteRepository {
 	 * Cuenta el total de estudiantes que cumplen los criterios (sin paginación).
 	 */
 	long countByCriteria(String nombre, String apellido, String numeroDocumento, Boolean activo);
-    Estudiante save(Estudiante estudiante);
+
+    long countByActivoTrue();
+
 }
 

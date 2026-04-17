@@ -5,27 +5,31 @@ import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.example.academia.config.DatabaseConfig;
 import org.example.academia.domain.entity.Curso;
 import org.example.academia.domain.entity.Estudiante;
 import org.example.academia.repository.CursoRepositoryImpl;
+import org.example.academia.repository.EstudianteRepositoryImpl;
 import org.example.academia.security.SessionManager;
 import org.example.academia.service.CursoService;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -51,20 +55,13 @@ public class DashboardController {
 
     @FXML
     private void initialize() {
-        // Mostrar usuario actual si está disponible en la sesión
         if (usuarioLabel != null && SessionManager.getInstance().getCurrentUser() != null) {
             usuarioLabel.setText("Usuario: " + SessionManager.getInstance().getCurrentUser().getUsername());
         }
 
-        // Ejecutar carga inicial en el hilo de UI para evitar problemas de timing
         Platform.runLater(() -> {
-            // Cargar vista por defecto (Estudiantes)
-            loadView("/ui/view/estudiantes.fxml");
-            // Actualizar KPIs y lista reciente
-            loadKpiCursos();
-            loadRecentStudents();
+            showDashboardKpis();
 
-            // Aplicar stylesheet del dashboard a la escena si está disponible
             try {
                 if (contentPane != null) {
                     Scene s = contentPane.getScene();
@@ -84,6 +81,177 @@ public class DashboardController {
             }
         });
     }
+
+    @FXML
+    private void onDashboard() {
+        showDashboardKpis();
+    }
+
+    // ===================== KPI DASHBOARD =====================
+
+    private void showDashboardKpis() {
+        if (contentPane == null) return;
+
+        // --- Obtener datos KPI ---
+        long estudiantesActivos = 0;
+        long cursosAbiertos = 0;
+        long cuposDisponibles = 0;
+        BigDecimal pagosDelDia = BigDecimal.ZERO;
+        long matriculasActivas = 0;
+        long estudiantesNuevosMes = 0;
+
+        try {
+            var estRepo = new EstudianteRepositoryImpl();
+            estudiantesActivos = estRepo.countByActivoTrue();
+            LocalDate inicioMes = LocalDate.now().withDayOfMonth(1);
+            estudiantesNuevosMes = estRepo.countByFechaRegistroBetween(inicioMes, LocalDate.now());
+        } catch (Exception ex) { ex.printStackTrace(); }
+
+        try {
+            CursoService cursoService = new CursoService(new CursoRepositoryImpl());
+            List<Curso> abiertos = cursoService.getCursosAbiertos();
+            cursosAbiertos = abiertos.size();
+            cuposDisponibles = cursoService.getTotalCuposDisponibles();
+        } catch (Exception ex) { ex.printStackTrace(); }
+
+        try {
+            EntityManager em = DatabaseConfig.createEntityManager();
+            try {
+                // Pagos VIGENTES del día
+                LocalDateTime inicioDia = LocalDate.now().atStartOfDay();
+                LocalDateTime finDia = inicioDia.plusDays(1);
+                TypedQuery<BigDecimal> q = em.createQuery(
+                        "SELECT COALESCE(SUM(p.monto), 0) FROM PagoEstudiante p WHERE p.estado = 'VIGENTE' AND p.fecha >= :inicio AND p.fecha < :fin",
+                        BigDecimal.class);
+                q.setParameter("inicio", inicioDia);
+                q.setParameter("fin", finDia);
+                pagosDelDia = q.getSingleResult();
+
+                // Matrículas activas
+                TypedQuery<Long> qm = em.createQuery(
+                        "SELECT COUNT(m) FROM Matricula m WHERE m.estado = 'ACTIVA'", Long.class);
+                matriculasActivas = qm.getSingleResult();
+            } finally {
+                em.close();
+            }
+        } catch (Exception ex) { ex.printStackTrace(); }
+
+        // Actualizar labels laterales si existen
+        if (cursosAbiertosLabel != null) cursosAbiertosLabel.setText(String.valueOf(cursosAbiertos));
+        if (cuposDisponiblesLabel != null) cuposDisponiblesLabel.setText(String.valueOf(cuposDisponibles));
+
+        // --- Construir UI de KPIs ---
+        VBox root = new VBox(16);
+        root.getStyleClass().add("content-card");
+        root.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        root.setFillWidth(true);
+        root.setPadding(new Insets(24));
+
+        Label title = new Label("📊 Dashboard — Indicadores Clave");
+        title.getStyleClass().add("content-title");
+
+        Label subtitle = new Label("Resumen en tiempo real del sistema de la Academia de Belleza");
+        subtitle.getStyleClass().add("content-subtitle");
+        subtitle.setWrapText(true);
+
+        // Grid de tarjetas KPI (3 columnas x 2 filas)
+        GridPane grid = new GridPane();
+        grid.setHgap(14);
+        grid.setVgap(14);
+        grid.setMaxWidth(Double.MAX_VALUE);
+        // 3 columnas iguales
+        for (int i = 0; i < 3; i++) {
+            ColumnConstraints cc = new ColumnConstraints();
+            cc.setPercentWidth(33.33);
+            cc.setHgrow(Priority.ALWAYS);
+            grid.getColumnConstraints().add(cc);
+        }
+
+        grid.add(createKpiCard("👩‍🎓", "Estudiantes Activos", String.valueOf(estudiantesActivos), "#2563eb"), 0, 0);
+        grid.add(createKpiCard("📚", "Cursos Abiertos", String.valueOf(cursosAbiertos), "#059669"), 1, 0);
+        grid.add(createKpiCard("💳", "Pagos del Día", "$" + pagosDelDia.toPlainString(), "#d97706"), 2, 0);
+        grid.add(createKpiCard("📝", "Matrículas Activas", String.valueOf(matriculasActivas), "#7c3aed"), 0, 1);
+        grid.add(createKpiCard("🪑", "Cupos Disponibles", String.valueOf(cuposDisponibles), "#0891b2"), 1, 1);
+        grid.add(createKpiCard("🆕", "Nuevos Este Mes", String.valueOf(estudiantesNuevosMes), "#e11d48"), 2, 1);
+
+        // Lista de estudiantes recientes
+        Label recentTitle = new Label("Últimos estudiantes registrados");
+        recentTitle.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #374151; -fx-padding: 8 0 0 0;");
+
+        ListView<String> recentList = new ListView<>();
+        recentList.setPrefHeight(140);
+        recentList.setMaxHeight(160);
+        recentList.setStyle("-fx-background-radius: 8; -fx-border-radius: 8;");
+        loadRecentStudentsInto(recentList);
+
+        root.getChildren().addAll(title, subtitle, grid, recentTitle, recentList);
+        VBox.setVgrow(grid, Priority.ALWAYS);
+
+        setContent(root);
+    }
+
+    private VBox createKpiCard(String icon, String label, String value, String color) {
+        VBox card = new VBox(4);
+        card.setAlignment(Pos.CENTER);
+        card.setPadding(new Insets(16, 12, 16, 12));
+        card.setMaxWidth(Double.MAX_VALUE);
+        card.setStyle(
+                "-fx-background-color: white;" +
+                "-fx-background-radius: 12;" +
+                "-fx-border-color: " + color + "22;" +
+                "-fx-border-radius: 12;" +
+                "-fx-border-width: 2;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);"
+        );
+
+        Label iconLbl = new Label(icon);
+        iconLbl.setStyle("-fx-font-size: 28px;");
+
+        Label valueLbl = new Label(value);
+        valueLbl.setStyle("-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: " + color + ";");
+
+        Label nameLbl = new Label(label);
+        nameLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #6b7280;");
+        nameLbl.setWrapText(true);
+
+        card.getChildren().addAll(iconLbl, valueLbl, nameLbl);
+
+        // Hover animation
+        card.setOnMouseEntered(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(150), card);
+            st.setToX(1.04); st.setToY(1.04); st.play();
+        });
+        card.setOnMouseExited(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(150), card);
+            st.setToX(1.0); st.setToY(1.0); st.play();
+        });
+
+        return card;
+    }
+
+    private void loadRecentStudentsInto(ListView<String> list) {
+        try {
+            EntityManager em = DatabaseConfig.createEntityManager();
+            try {
+                TypedQuery<Estudiante> query = em.createQuery(
+                        "SELECT e FROM Estudiante e ORDER BY e.fechaRegistro DESC", Estudiante.class);
+                query.setMaxResults(6);
+                List<Estudiante> recientes = query.getResultList();
+                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                for (Estudiante s : recientes) {
+                    String name = (s.getNombre() != null ? s.getNombre() : "") + " " + (s.getApellido() != null ? s.getApellido() : "");
+                    String date = s.getFechaRegistro() != null ? s.getFechaRegistro().format(fmt) : "";
+                    list.getItems().add(name.trim() + " — " + date);
+                }
+            } finally {
+                em.close();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    // ===================== NAVEGACIÓN =====================
 
     @FXML
     private void onEstudiantes() {
@@ -163,52 +331,6 @@ public class DashboardController {
         fade.play();
     }
 
-    private void loadKpiCursos() {
-        try {
-            CursoService cursoService = new CursoService(new CursoRepositoryImpl());
-            List<Curso> abiertos = cursoService.getCursosAbiertos();
-            long totalCupos = cursoService.getTotalCuposDisponibles();
-
-            if (cursosAbiertosLabel != null) {
-                cursosAbiertosLabel.setText(String.valueOf(abiertos.size()));
-            }
-            if (cuposDisponiblesLabel != null) {
-                cuposDisponiblesLabel.setText(String.valueOf(totalCupos));
-                ScaleTransition st = new ScaleTransition(Duration.millis(400), cuposDisponiblesLabel);
-                st.setFromX(0.9);
-                st.setFromY(0.9);
-                st.setToX(1.0);
-                st.setToY(1.0);
-                st.play();
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private void loadRecentStudents() {
-        try {
-            if (recentStudentsList == null) return;
-            EntityManager em = DatabaseConfig.createEntityManager();
-            try {
-                TypedQuery<Estudiante> query = em.createQuery("SELECT e FROM Estudiante e ORDER BY e.fechaRegistro DESC", Estudiante.class);
-                query.setMaxResults(6);
-                List<Estudiante> recientes = query.getResultList();
-                recentStudentsList.getItems().clear();
-                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                for (Estudiante s : recientes) {
-                    String name = (s.getNombre() != null ? s.getNombre() : "") + " " + (s.getApellido() != null ? s.getApellido() : "");
-                    String date = s.getFechaRegistro() != null ? s.getFechaRegistro().format(fmt) : "";
-                    recentStudentsList.getItems().add(name + " — " + date);
-                }
-            } finally {
-                em.close();
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
     @FXML
     private void onKpiCursosClicked(MouseEvent event) {
         try {
@@ -243,7 +365,3 @@ public class DashboardController {
         }
     }
 }
-
-
-
-
