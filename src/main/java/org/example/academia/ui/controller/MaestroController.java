@@ -106,6 +106,11 @@ public class MaestroController {
         filtroEstadoCombo.setItems(FXCollections.observableArrayList(ESTADO_ACTIVOS, ESTADO_INACTIVOS, ESTADO_TODOS));
         filtroEstadoCombo.setValue(ESTADO_ACTIVOS);
 
+        // Filtrado reactivo: refresca listado mientras se escribe.
+        filtroNombreField.textProperty().addListener((obs, oldVal, newVal) -> cargarMaestros(0));
+        filtroDocumentoField.textProperty().addListener((obs, oldVal, newVal) -> cargarMaestros(0));
+        filtroEstadoCombo.valueProperty().addListener((obs, oldVal, newVal) -> cargarMaestros(0));
+
         paginacionMaestros.currentPageIndexProperty().addListener((obs, oldVal, newVal) -> {
             if (!actualizandoPaginacion) {
                 renderizarPagina(newVal.intValue());
@@ -195,7 +200,6 @@ public class MaestroController {
     private void onLimpiarFiltros() {
         filtroNombreField.clear();
         filtroDocumentoField.clear();
-        filtroEstadoCombo.setValue(ESTADO_ACTIVOS);
         cargarMaestros(0);
     }
 
