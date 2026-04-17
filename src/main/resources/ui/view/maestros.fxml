@@ -25,7 +25,6 @@
                 <TextField fx:id="filtroDocumentoField" promptText="Buscar por documento" prefWidth="160"/>
                 <Label text="Estado:"/>
                 <ComboBox fx:id="filtroEstadoCombo" prefWidth="140"/>
-                <Button text="Buscar" onAction="#onFiltrarMaestros"/>
                 <Button text="Limpiar" onAction="#onLimpiarFiltros"/>
             </HBox>
         </VBox>

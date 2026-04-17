@@ -82,7 +82,7 @@ public class MaestroRepositoryImpl implements MaestroRepository {
                 jpql.append(" AND LOWER(m.nombre) LIKE :nombre");
             }
             if (filtrarDocumento) {
-                jpql.append(" AND m.numeroDocumento LIKE :numeroDocumento");
+                jpql.append(" AND LOWER(m.numeroDocumento) LIKE :numeroDocumento");
             }
             if (filtrarEstado) {
                 jpql.append(" AND m.activo = :activo");
@@ -94,7 +94,7 @@ public class MaestroRepositoryImpl implements MaestroRepository {
                 query.setParameter("nombre", "%" + nombre.trim().toLowerCase() + "%");
             }
             if (filtrarDocumento) {
-                query.setParameter("numeroDocumento", "%" + numeroDocumento.trim() + "%");
+                query.setParameter("numeroDocumento", "%" + numeroDocumento.trim().toLowerCase() + "%");
             }
             if (filtrarEstado) {
                 query.setParameter("activo", activo);
