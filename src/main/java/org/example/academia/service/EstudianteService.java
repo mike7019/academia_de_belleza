@@ -1,16 +1,22 @@
 package org.example.academia.service;
 
 import org.example.academia.repository.EstudianteRepository;
-import org.example.academia.repository.EstudianteRepositoryImpl;
 
 import java.time.LocalDate;
 
 /**
- * Servicio de Estudiantes.
+ * Servicio de Estudiantes (mínimo funcional).
+ *
+ * Este archivo había quedado dañado; se restaura la estructura básica
+ * conservando las llamadas previstas hacia el repositorio de estudiantes.
  */
 public class EstudianteService {
 
-    private final EstudianteRepository estudianteRepository = new EstudianteRepositoryImpl();
+    private final EstudianteRepository estudianteRepository;
+
+    public EstudianteService(EstudianteRepository estudianteRepository) {
+        this.estudianteRepository = estudianteRepository;
+    }
 
     public long getTotalEstudiantesActivos() {
         return estudianteRepository.countByActivoTrue();

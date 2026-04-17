@@ -26,6 +26,12 @@ public class LoginController {
 
     @FXML
     private void onLogin() {
+        if (usernameField == null || passwordField == null || messageLabel == null) {
+            System.err.println("LoginController: campos FXML no inyectados correctamente");
+            if (messageLabel != null) messageLabel.setText("Error interno: campos de login no disponibles");
+            return;
+        }
+
         String username = usernameField.getText();
         String password = passwordField.getText();
 

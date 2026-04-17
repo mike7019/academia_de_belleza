@@ -8,6 +8,7 @@ public interface EstudianteRepository {
 
     long countByActivoTrue();
 
-    long countByFechaRegistroBetween(LocalDate start, LocalDate end);
+    long countByFechaRegistroBetween(LocalDate desde, LocalDate hasta);
 
+    Estudiante save(Estudiante estudiante);
 }
