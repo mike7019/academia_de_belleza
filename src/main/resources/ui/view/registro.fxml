@@ -7,12 +7,14 @@
            fx:id="contentPane"
            fx:controller="org.example.academia.ui.controller.RegistroController"
            stylesheets="@../styles/dashboard.css"
-           styleClass="content-pane"
+           styleClass="login-pane"
            alignment="CENTER"
-           prefWidth="Infinity" prefHeight="Infinity"
+           prefWidth="1040" prefHeight="862"
+           minWidth="900" minHeight="746"
            maxWidth="Infinity" maxHeight="Infinity">
-    <VBox alignment="CENTER" spacing="12.0" styleClass="content-card"
-          maxWidth="Infinity" maxHeight="Infinity">
+    <VBox alignment="CENTER" spacing="14.0" styleClass="login-card"
+          prefWidth="400" maxWidth="440" prefHeight="420" maxHeight="460"
+          translateY="-30">
         <Label text="Registro de usuario" styleClass="content-title"/>
 
         <TextField fx:id="nombreCompletoField" promptText="Nombre completo" maxWidth="250"/>
@@ -21,12 +23,9 @@
         <PasswordField fx:id="passwordField" promptText="Contraseña" maxWidth="250"/>
         <PasswordField fx:id="confirmPasswordField" promptText="Confirmar contraseña" maxWidth="250"/>
 
-        <HBox spacing="10.0" alignment="CENTER">
-            <Button text="Registrar" onAction="#onRegister"/>
-            <Button text="Volver al login" onAction="#onBackToLogin"/>
-        </HBox>
+        <Button text="Registrar" onAction="#onRegister" maxWidth="250" styleClass="login-button"/>
+        <Hyperlink text="Volver al login" onAction="#onBackToLogin" styleClass="login-link"/>
 
         <Label fx:id="messageLabel" textFill="red"/>
     </VBox>
 </StackPane>
-

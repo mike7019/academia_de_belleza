@@ -7,17 +7,20 @@
            fx:id="contentPane"
            fx:controller="org.example.academia.ui.controller.LoginController"
            stylesheets="@../styles/dashboard.css"
-           styleClass="content-pane"
+           styleClass="login-pane"
            alignment="CENTER"
-           prefWidth="Infinity" prefHeight="Infinity"
+           prefWidth="1040" prefHeight="862"
+           minWidth="900" minHeight="746"
            maxWidth="Infinity" maxHeight="Infinity">
-    <VBox alignment="CENTER" spacing="12.0" styleClass="content-card"
-          maxWidth="Infinity" maxHeight="Infinity">
+    <VBox alignment="CENTER" spacing="14.0" styleClass="login-card"
+          prefWidth="380" maxWidth="400" prefHeight="360" maxHeight="380"
+          translateY="-30">
         <Label text="Academia de Belleza" styleClass="content-title"/>
         <TextField fx:id="usernameField" promptText="Usuario" maxWidth="200"/>
         <PasswordField fx:id="passwordField" promptText="Contraseña" maxWidth="200"/>
-        <Button text="Iniciar sesión" onAction="#onLogin" maxWidth="200"/>
-        <Button text="Registrarse" onAction="#onRegister" maxWidth="200"/>
+        <Button text="Iniciar sesión" onAction="#onLogin" maxWidth="200" styleClass="login-button"/>
+        <Hyperlink text="¿Olvidaste tu contraseña?" onAction="#onRecuperarContrasena" styleClass="login-link"/>
+        <Hyperlink text="Registrarse" onAction="#onRegister" styleClass="login-link"/>
         <Label fx:id="messageLabel" textFill="red"/>
     </VBox>
 
