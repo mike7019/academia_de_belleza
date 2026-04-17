@@ -10,6 +10,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.Pagination;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -20,6 +21,8 @@ import org.example.academia.security.AuthException;
 import org.example.academia.service.BusinessException;
 import org.example.academia.service.EstudianteService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -28,6 +31,11 @@ import java.util.Optional;
  * Mantiene el mismo diseño operativo que Maestros: listado + diálogo CRUD.
  */
 public class EstudianteController {
+
+    private static final String ESTADO_ACTIVOS = "Activos";
+    private static final String ESTADO_INACTIVOS = "Inactivos";
+    private static final String ESTADO_TODOS = "Todos";
+    private static final int PAGE_SIZE = 20;
 
     @FXML
     private TableView<EstudianteDTO> estudiantesTable;
@@ -50,12 +58,30 @@ public class EstudianteController {
     @FXML
     private TableColumn<EstudianteDTO, Boolean> activoColumn;
 
+    @FXML
+    private TextField filtroNombreField;
+
+    @FXML
+    private TextField filtroDocumentoField;
+
+    @FXML
+    private ComboBox<String> filtroEstadoCombo;
+
+    @FXML
+    private Pagination paginacionEstudiantes;
+
+    @FXML
+    private Label resumenPaginaLabel;
+
     private final EstudianteService estudianteService;
     private final ObservableList<EstudianteDTO> estudiantesList;
+    private final List<EstudianteDTO> estudiantesFiltrados;
+    private boolean actualizandoPaginacion;
 
     public EstudianteController() {
         this.estudianteService = new EstudianteService();
         this.estudiantesList = FXCollections.observableArrayList();
+        this.estudiantesFiltrados = new ArrayList<>();
     }
 
     @FXML
@@ -67,8 +93,17 @@ public class EstudianteController {
         emailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
         activoColumn.setCellValueFactory(new PropertyValueFactory<>("activo"));
 
+        filtroEstadoCombo.setItems(FXCollections.observableArrayList(ESTADO_ACTIVOS, ESTADO_INACTIVOS, ESTADO_TODOS));
+        filtroEstadoCombo.setValue(ESTADO_ACTIVOS);
+
+        paginacionEstudiantes.currentPageIndexProperty().addListener((obs, oldVal, newVal) -> {
+            if (!actualizandoPaginacion) {
+                renderizarPagina(newVal.intValue());
+            }
+        });
+
         estudiantesTable.setItems(estudiantesList);
-        cargarEstudiantes();
+        cargarEstudiantes(0);
     }
 
     @FXML
@@ -80,7 +115,7 @@ public class EstudianteController {
         showEstudianteDialog(nuevo, false).ifPresent(dto -> {
             try {
                 estudianteService.guardarEstudiante(dto);
-                cargarEstudiantes();
+                cargarEstudiantes(0);
                 showInfo("Estudiante creado correctamente.");
             } catch (BusinessException | AuthException ex) {
                 showError(ex.getMessage());
@@ -100,7 +135,7 @@ public class EstudianteController {
         showEstudianteDialog(editable, true).ifPresent(dto -> {
             try {
                 estudianteService.actualizarEstudiante(dto);
-                cargarEstudiantes();
+                cargarEstudiantes(0);
                 showInfo("Estudiante actualizado correctamente.");
             } catch (BusinessException | AuthException ex) {
                 showError(ex.getMessage());
@@ -128,12 +163,26 @@ public class EstudianteController {
         if (resultado.isPresent() && resultado.get() == ButtonType.YES) {
             try {
                 estudianteService.inactivarEstudiante(seleccionado.getId());
-                cargarEstudiantes();
+                int paginaActual = paginacionEstudiantes != null ? paginacionEstudiantes.getCurrentPageIndex() : 0;
+                cargarEstudiantes(paginaActual);
                 showInfo("Estudiante inactivado correctamente.");
             } catch (BusinessException | AuthException ex) {
                 showError(ex.getMessage());
             }
         }
+    }
+
+    @FXML
+    private void onFiltrarEstudiantes() {
+        cargarEstudiantes(0);
+    }
+
+    @FXML
+    private void onLimpiarFiltros() {
+        filtroNombreField.clear();
+        filtroDocumentoField.clear();
+        filtroEstadoCombo.setValue(ESTADO_ACTIVOS);
+        cargarEstudiantes(0);
     }
 
     private Optional<EstudianteDTO> showEstudianteDialog(EstudianteDTO base, boolean edicion) {
@@ -231,12 +280,77 @@ public class EstudianteController {
     }
 
     private void cargarEstudiantes() {
+        cargarEstudiantes(0);
+    }
+
+    private void cargarEstudiantes(int paginaPreferida) {
         estudiantesList.clear();
+        estudiantesFiltrados.clear();
         try {
-            estudiantesList.addAll(estudianteService.listarEstudiantesActivos());
+            String nombre = valorFiltro(filtroNombreField.getText());
+            String documento = valorFiltro(filtroDocumentoField.getText());
+            Boolean activo = obtenerEstadoFiltro();
+
+            estudiantesFiltrados.addAll(estudianteService.listarEstudiantes(nombre, documento, activo));
+            actualizarPaginacion(paginaPreferida);
         } catch (BusinessException | AuthException ex) {
             showError(ex.getMessage());
+            actualizarPaginacion(0);
         }
+    }
+
+    private void actualizarPaginacion(int paginaPreferida) {
+        int total = estudiantesFiltrados.size();
+        int totalPaginas = Math.max(1, (int) Math.ceil(total / (double) PAGE_SIZE));
+        int paginaObjetivo = Math.max(0, Math.min(paginaPreferida, totalPaginas - 1));
+
+        actualizandoPaginacion = true;
+        paginacionEstudiantes.setPageCount(totalPaginas);
+        paginacionEstudiantes.setCurrentPageIndex(paginaObjetivo);
+        actualizandoPaginacion = false;
+
+        renderizarPagina(paginaObjetivo);
+    }
+
+    private void renderizarPagina(int pageIndex) {
+        estudiantesList.clear();
+
+        int total = estudiantesFiltrados.size();
+        if (total == 0) {
+            resumenPaginaLabel.setText("Mostrando 0 de 0");
+            return;
+        }
+
+        int fromIndex = pageIndex * PAGE_SIZE;
+        if (fromIndex >= total) {
+            fromIndex = Math.max(0, (total - 1) / PAGE_SIZE * PAGE_SIZE);
+            pageIndex = fromIndex / PAGE_SIZE;
+            actualizandoPaginacion = true;
+            paginacionEstudiantes.setCurrentPageIndex(pageIndex);
+            actualizandoPaginacion = false;
+        }
+
+        int toIndex = Math.min(fromIndex + PAGE_SIZE, total);
+        estudiantesList.addAll(estudiantesFiltrados.subList(fromIndex, toIndex));
+        resumenPaginaLabel.setText("Mostrando " + (fromIndex + 1) + "-" + toIndex + " de " + total);
+    }
+
+    private String valorFiltro(String valor) {
+        if (valor == null || valor.isBlank()) {
+            return null;
+        }
+        return valor.trim();
+    }
+
+    private Boolean obtenerEstadoFiltro() {
+        String estado = filtroEstadoCombo.getValue();
+        if (ESTADO_ACTIVOS.equals(estado)) {
+            return true;
+        }
+        if (ESTADO_INACTIVOS.equals(estado)) {
+            return false;
+        }
+        return null;
     }
 
     private void showError(String message) {

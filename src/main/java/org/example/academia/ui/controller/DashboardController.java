@@ -1,6 +1,7 @@
 package org.example.academia.ui.controller;
 
 import javafx.animation.FadeTransition;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -15,6 +16,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.example.academia.security.SessionManager;
 
+import java.net.URL;
 import java.io.IOException;
 
 /**
@@ -60,6 +62,12 @@ public class DashboardController {
 
     @FXML
     private void initialize() {
+        if (!SessionManager.getInstance().isAuthenticated()) {
+            // Evita dejar el dashboard visible sin sesión activa.
+            Platform.runLater(() -> navegarALogin(false));
+            return;
+        }
+
         // Mostrar usuario actual si está disponible en la sesión
         if (usuarioLabel != null && SessionManager.getInstance().getCurrentUser() != null) {
             usuarioLabel.setText("Usuario: " + SessionManager.getInstance().getCurrentUser().getUsername());
@@ -122,17 +130,38 @@ public class DashboardController {
 
     @FXML
     private void onLogout() {
-        // Limpiar usuario en sesión y volver a la pantalla de login
-        SessionManager.getInstance().logout();
+        navegarALogin(true);
+    }
+
+    private void navegarALogin(boolean cerrarSesion) {
         try {
-            Parent root = new FXMLLoader(getClass().getResource("/ui/view/login.fxml")).load();
+            if (cerrarSesion) {
+                SessionManager.getInstance().logout();
+            }
+
+            URL loginUrl = getClass().getResource("/ui/view/login.fxml");
+            if (loginUrl == null) {
+                throw new IOException("No se encontró /ui/view/login.fxml");
+            }
+
+            Parent root = new FXMLLoader(loginUrl).load();
             Stage stage = (Stage) contentPane.getScene().getWindow();
+            if (stage == null) {
+                throw new IllegalStateException("No se encontró la ventana principal");
+            }
+
+            // Conserva tamaño actual para evitar parpadeos o pantallas vacías por recálculo.
+            double width = stage.getWidth() > 0 ? stage.getWidth() : 1100;
+            double height = stage.getHeight() > 0 ? stage.getHeight() : 700;
             stage.setTitle("Academia de Belleza");
-            stage.setScene(new Scene(root));
-        } catch (IOException e) {
+            stage.setScene(new Scene(root, width, height));
+            stage.show();
+        } catch (Exception e) {
             e.printStackTrace();
-            Label errorLabel = new Label("Error al cerrar sesión");
-            contentPane.getChildren().setAll(errorLabel);
+            if (contentPane != null) {
+                Label errorLabel = new Label("Error al abrir login. Reinicie la aplicación.");
+                contentPane.getChildren().setAll(errorLabel);
+            }
         }
     }
 

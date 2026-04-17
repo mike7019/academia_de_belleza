@@ -229,6 +229,19 @@ public class EstudianteService {
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * Lista estudiantes aplicando filtros opcionales de nombre, documento y estado.
+	 */
+	public List<EstudianteDTO> listarEstudiantes(String nombre, String numeroDocumento, Boolean activo) {
+		if (!tienePermisoLectura()) {
+			throw new AuthException("Permiso denegado: ESTUDIANTE_VER o ESTUDIANTE_LISTAR");
+		}
+		return repository.search(nombre, null, numeroDocumento, activo, 0, Integer.MAX_VALUE, "nombre", true)
+				.stream()
+				.map(EstudianteMapper::toDTO)
+				.collect(Collectors.toList());
+	}
+
 	public EstudianteDTO guardarEstudiante(EstudianteDTO dto) {
 		dto.setId(null);
 		dto.setActivo(true);
