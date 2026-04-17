@@ -49,6 +49,22 @@ public class SeguridadService {
 
 		// Autenticación exitosa: registrar en SessionManager
 		sessionManager.login(usuario);
+
+		// DEBUG: imprimir roles y permisos cargados para ayudar a depuración en desarrollo
+		try {
+			if (usuario.getRoles() != null) {
+				System.out.println("[DEBUG] Usuario autenticado: " + usuario.getUsername());
+				usuario.getRoles().forEach(r -> {
+					System.out.println("[DEBUG] Rol: " + r.getNombre() + " (activo=" + r.isActivo() + ")");
+					if (r.getPermisos() != null) {
+						r.getPermisos().forEach(p -> System.out.println("[DEBUG]   Permiso: " + p.getCodigo()));
+					}
+				});
+			}
+		} catch (Exception e) {
+			// No interrumpir la autenticación por fallos en logging
+			System.err.println("[DEBUG] Error imprimiendo roles/permisos: " + e.getMessage());
+		}
 	}
 }
 
