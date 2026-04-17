@@ -18,6 +18,16 @@
                 <Button text="Inactivar" onAction="#onInactivarMaestro"/>
                 <Button text="Ver Cursos Asignados"/>
             </HBox>
+            <HBox spacing="10.0" alignment="CENTER_LEFT">
+                <Label text="Nombre:"/>
+                <TextField fx:id="filtroNombreField" promptText="Buscar por nombre" prefWidth="180"/>
+                <Label text="Documento:"/>
+                <TextField fx:id="filtroDocumentoField" promptText="Buscar por documento" prefWidth="160"/>
+                <Label text="Estado:"/>
+                <ComboBox fx:id="filtroEstadoCombo" prefWidth="140"/>
+                <Button text="Buscar" onAction="#onFiltrarMaestros"/>
+                <Button text="Limpiar" onAction="#onLimpiarFiltros"/>
+            </HBox>
         </VBox>
     </top>
     <center>
@@ -32,5 +42,10 @@
             </columns>
         </TableView>
     </center>
+    <bottom>
+        <HBox spacing="10.0" alignment="CENTER_RIGHT" style="-fx-padding: 8 10 8 10;">
+            <Label fx:id="resumenPaginaLabel" text="Mostrando 0 de 0"/>
+            <Pagination fx:id="paginacionMaestros" maxPageIndicatorCount="7"/>
+        </HBox>
+    </bottom>
 </BorderPane>
-
