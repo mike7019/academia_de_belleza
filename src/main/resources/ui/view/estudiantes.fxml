@@ -47,6 +47,9 @@
                 <CheckBox fx:id="chActivo" selected="true" GridPane.rowIndex="7" GridPane.columnIndex="1" />
             </GridPane>
 
+            <!-- Contenedor reservado para botones de acción (Editar / Inactivar / Reactivar) -->
+            <HBox fx:id="actionButtonsBox" spacing="6" />
+
             <HBox spacing="8">
                 <Button text="Guardar" fx:id="btnGuardar" />
                 <Button text="Nuevo" fx:id="btnNuevo" />
@@ -62,6 +65,8 @@
                 <columns>
                     <TableColumn fx:id="colId" text="ID" />
                     <TableColumn fx:id="colNombre" text="Nombre" />
+                    <!-- Columna que muestra nombre y estado (Activo/Inactivo) -->
+                    <TableColumn fx:id="colNombreEstado" text="Nombre (Estado)" />
                     <TableColumn fx:id="colApellido" text="Apellido" />
                     <TableColumn fx:id="colDocumento" text="Documento" />
                     <TableColumn fx:id="colEmail" text="Email" />

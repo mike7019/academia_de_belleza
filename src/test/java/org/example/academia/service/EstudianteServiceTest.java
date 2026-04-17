@@ -26,7 +26,7 @@ public class EstudianteServiceTest {
                 // permitir siempre en tests
             }
         };
-        service = new EstudianteService(repo, auth);
+        service = new EstudianteService(repo, auth, null);
     }
 
     @Test
@@ -66,6 +66,30 @@ public class EstudianteServiceTest {
         dto.setNumeroDocumento("222");
 
         assertThrows(BusinessException.class, () -> service.save(dto));
+    }
+
+    @Test
+    public void testInactivateAndReactivate() {
+        // crear estudiante
+        Estudiante e = new Estudiante();
+        e.setNombre("Luis");
+        e.setApellido("Martinez");
+        e.setNumeroDocumento("999");
+        repo.save(e);
+
+        // inactivar
+        service.inactivate(e.getId());
+        Optional<Estudiante> fromRepo = repo.findById(e.getId());
+        assertTrue(fromRepo.isPresent());
+        assertFalse(fromRepo.get().isActivo());
+        assertNotNull(fromRepo.get().getFechaBaja());
+
+        // reactivar
+        service.reactivate(e.getId());
+        Optional<Estudiante> afterReact = repo.findById(e.getId());
+        assertTrue(afterReact.isPresent());
+        assertTrue(afterReact.get().isActivo());
+        assertNull(afterReact.get().getFechaBaja());
     }
 
     // Repositorio en memoria para pruebas

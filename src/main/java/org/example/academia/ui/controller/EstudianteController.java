@@ -8,6 +8,8 @@ import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.util.Duration;
 import javafx.collections.ListChangeListener;
+import javafx.scene.layout.HBox;
+import java.util.Optional;
 import org.example.academia.dto.EstudianteDTO;
 import org.example.academia.dto.PaginatedResult;
 import org.example.academia.service.EstudianteService;
@@ -37,10 +39,12 @@ public class EstudianteController {
     @FXML private Button btnNuevo;
     @FXML private Label lblMensaje;
     @FXML private Label lblDocError;
+    @FXML private HBox actionButtonsBox;
 
     @FXML private TableView<EstudianteDTO> tblEstudiantes;
     @FXML private TableColumn<EstudianteDTO, Long> colId;
     @FXML private TableColumn<EstudianteDTO, String> colNombre;
+    @FXML private TableColumn<EstudianteDTO, String> colNombreEstado;
     @FXML private TableColumn<EstudianteDTO, String> colApellido;
     @FXML private TableColumn<EstudianteDTO, String> colDocumento;
     @FXML private TableColumn<EstudianteDTO, String> colEmail;
@@ -54,6 +58,14 @@ public class EstudianteController {
 
     private EstudianteService estudianteService;
     private final ObservableList<EstudianteDTO> estudiantes = FXCollections.observableArrayList();
+    // Id del estudiante que se está editando (null si se crea uno nuevo)
+    private Long editingId = null;
+    // Authorization service promoted to field so other methods / handlers can use it
+    private org.example.academia.security.AuthorizationService authorizationService;
+    // Botones de acciones globales (arriba/debajo del formulario)
+    private Button btnEditarSelectedTop;
+    private Button btnInactivarSelectedTop;
+    private Button btnReactivarSelectedTop;
 
     // Paginación
     private int currentPage = 0;
@@ -62,9 +74,9 @@ public class EstudianteController {
 
     @FXML
     private void initialize() {
-        // Inicializar servicios (authorization service local)
-        org.example.academia.security.AuthorizationService authorizationService = new org.example.academia.security.AuthorizationService();
-        estudianteService = new EstudianteService(new EstudianteRepositoryImpl(), authorizationService, new AuditoriaRepositoryImpl());
+        // Inicializar servicios (authorization service como campo para reusar en handlers)
+        this.authorizationService = new org.example.academia.security.AuthorizationService();
+        estudianteService = new EstudianteService(new EstudianteRepositoryImpl(), this.authorizationService, new AuditoriaRepositoryImpl());
 
         // Habilitar/deshabilitar acciones según permisos del usuario actual
         try {
@@ -93,9 +105,39 @@ public class EstudianteController {
             lblDocError.setVisible(false);
         }
 
+        // Por defecto, mostrar sólo estudiantes activos (UX): el checkbox controla esto
+        if (chFiltrarActivos != null) {
+            chFiltrarActivos.setSelected(true);
+        }
+
         // Configurar columnas (usamos properties directas por nombres de getters)
         colId.setCellValueFactory(cell -> new javafx.beans.property.SimpleObjectProperty<>(cell.getValue().getId()));
         colNombre.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(cell.getValue().getNombre()));
+        // Columna combinada: nombre + estado
+        if (colNombreEstado != null) {
+            colNombreEstado.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(
+                    cell.getValue().getNombre() + (cell.getValue().isActivo() ? " (Activo)" : " (Inactivo)")
+            ));
+            // Aplicar estilo: nombre en rojo si inactivo
+            colNombreEstado.setCellFactory(col -> new TableCell<>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(item);
+                        EstudianteDTO dto = getTableView().getItems().get(getIndex());
+                        if (dto != null && !dto.isActivo()) {
+                            setStyle("-fx-text-fill: #b00020;");
+                        } else {
+                            setStyle("");
+                        }
+                    }
+                }
+            });
+        }
         colApellido.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(cell.getValue().getApellido()));
         colDocumento.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(cell.getValue().getNumeroDocumento()));
         colEmail.setCellValueFactory(cell -> new javafx.beans.property.SimpleStringProperty(cell.getValue().getEmail()));
@@ -104,9 +146,122 @@ public class EstudianteController {
 
         tblEstudiantes.setItems(estudiantes);
 
+        // Resaltar visualmente filas inactivas: opacidad reducida y fondo claro
+        tblEstudiantes.setRowFactory(tv -> new TableRow<EstudianteDTO>() {
+            @Override
+            protected void updateItem(EstudianteDTO item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item == null || empty) {
+                    setStyle("");
+                } else {
+                    if (!item.isActivo()) {
+                        // estilo inline para evitar depender de CSS externo
+                        setStyle("-fx-opacity: 0.7; -fx-background-color: #f5f5f5;");
+                    } else {
+                        setStyle("");
+                    }
+                }
+            }
+        });
+
+        // En lugar de una columna con acciones por fila, añadimos botones globales cerca de los botones
+        // de formulario (Guardar/Nuevo). Esto facilita la edición/inactivación del estudiante seleccionado.
+        btnEditarSelectedTop = new Button("Editar seleccionado");
+        btnInactivarSelectedTop = new Button("Inactivar seleccionado");
+        btnReactivarSelectedTop = new Button("Reactivar seleccionado");
+
+        btnEditarSelectedTop.setOnAction(e -> {
+            EstudianteDTO sel = tblEstudiantes.getSelectionModel().getSelectedItem();
+            if (sel != null) cargarEstudianteEnFormulario(sel);
+            else lblMensaje.setText("Seleccione un estudiante para editar.");
+        });
+
+        btnInactivarSelectedTop.setOnAction(e -> {
+            EstudianteDTO sel = tblEstudiantes.getSelectionModel().getSelectedItem();
+            if (sel == null) { lblMensaje.setText("Seleccione un estudiante para inactivar."); return; }
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Confirmar inactivación");
+            confirm.setHeaderText("Inactivar estudiante");
+            confirm.setContentText("¿Desea inactivar al estudiante '" + sel.getNombre() + "' (Documento: " + sel.getNumeroDocumento() + ")?");
+            Optional<ButtonType> opt = confirm.showAndWait();
+            if (opt.isPresent() && opt.get() == ButtonType.OK) {
+                try {
+                    estudianteService.inactivate(sel.getId());
+                    cargarTodos(); filtrar();
+                    lblMensaje.setText("Estudiante inactivado.");
+                } catch (Exception ex) {
+                    lblMensaje.setText("Error inactivando estudiante: " + ex.getMessage());
+                }
+            }
+        });
+
+        btnReactivarSelectedTop.setOnAction(e -> {
+            EstudianteDTO sel = tblEstudiantes.getSelectionModel().getSelectedItem();
+            if (sel == null) { lblMensaje.setText("Seleccione un estudiante para reactivar."); return; }
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Confirmar reactivación");
+            confirm.setHeaderText("Reactivar estudiante");
+            confirm.setContentText("¿Desea reactivar al estudiante '" + sel.getNombre() + "' (Documento: " + sel.getNumeroDocumento() + ")?");
+            Optional<ButtonType> opt = confirm.showAndWait();
+            if (opt.isPresent() && opt.get() == ButtonType.OK) {
+                try {
+                    estudianteService.reactivate(sel.getId());
+                    cargarTodos(); filtrar();
+                    lblMensaje.setText("Estudiante reactivado.");
+                } catch (Exception ex) {
+                    lblMensaje.setText("Error reactivando estudiante: " + ex.getMessage());
+                }
+            }
+        });
+
+        // Controlar permisos iniciales: si no tiene permiso, deshabilitar los botones
+        try {
+            boolean puedeEditarSel = this.authorizationService.hasPermission("ESTUDIANTE_EDITAR");
+            btnEditarSelectedTop.setDisable(!puedeEditarSel);
+        } catch (Exception ex) { btnEditarSelectedTop.setDisable(true); }
+        try {
+            boolean puedeInactivarSel = this.authorizationService.hasPermission("ESTUDIANTE_INACTIVAR");
+            btnInactivarSelectedTop.setDisable(!puedeInactivarSel);
+            btnReactivarSelectedTop.setDisable(!puedeInactivarSel);
+        } catch (Exception ex) { btnInactivarSelectedTop.setDisable(true); btnReactivarSelectedTop.setDisable(true); }
+
+        // Añadir los botones al HBox reservado en el FXML si existe, si no, intentar la inserción dinámica como fallback
+        if (actionButtonsBox != null) {
+            actionButtonsBox.getChildren().clear();
+            actionButtonsBox.getChildren().addAll(btnEditarSelectedTop, btnInactivarSelectedTop, btnReactivarSelectedTop);
+        } else {
+            HBox topActions = new HBox(6, btnEditarSelectedTop, btnInactivarSelectedTop, btnReactivarSelectedTop);
+            topActions.setStyle("-fx-padding: 6 0 6 0;");
+            javafx.scene.Parent parent = btnGuardar.getParent();
+            if (parent instanceof javafx.scene.layout.Pane) {
+                javafx.scene.layout.Pane pane = (javafx.scene.layout.Pane) parent;
+                int idx = pane.getChildren().indexOf(btnGuardar);
+                if (idx >= 0) pane.getChildren().add(idx, topActions);
+                else pane.getChildren().add(topActions);
+            } else {
+                // Si no es posible, notificar en lblMensaje (no romper la inicialización)
+                lblMensaje.setText("Acciones añadidas pero no insertadas en el layout; use la tabla para seleccionar.");
+            }
+        }
+
+        // Escuchar selección de tabla para actualizar visibilidad/estado de botones
+        tblEstudiantes.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+            updateTopButtonsState(newV);
+        });
+
         btnGuardar.setOnAction(e -> onGuardar());
         btnGuardar.setDefaultButton(true); // permite pulsar Enter para activar el botón por defecto
         btnNuevo.setOnAction(e -> limpiarFormulario());
+
+        // Permitir editar un estudiante haciendo doble click en la fila
+        tblEstudiantes.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2) {
+                EstudianteDTO sel = tblEstudiantes.getSelectionModel().getSelectedItem();
+                if (sel != null) {
+                    cargarEstudianteEnFormulario(sel);
+                }
+            }
+        });
 
         // Actualizar tabla y aplicar filtro en tiempo real al escribir en los campos relevantes
         // Usar debounce (PauseTransition) para evitar llamadas en cada pulsación
@@ -194,7 +349,23 @@ public class EstudianteController {
     private void onGuardar() {
         lblMensaje.setText("");
         try {
+            // Si estamos en modo edición, pedir confirmación antes de actualizar
+            if (editingId != null) {
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+                confirm.setTitle("Confirmar actualización");
+                confirm.setHeaderText("Actualizar estudiante");
+                String doc = tfNumeroDocumento.getText() == null ? "" : tfNumeroDocumento.getText();
+                String nombre = tfNombre.getText() == null ? "" : tfNombre.getText();
+                confirm.setContentText("¿Desea actualizar al estudiante '" + nombre + "' (Documento: " + doc + ")?");
+                Optional<ButtonType> opt = confirm.showAndWait();
+                if (opt.isEmpty() || opt.get() != ButtonType.OK) {
+                    lblMensaje.setText("Actualización cancelada.");
+                    return;
+                }
+            }
             EstudianteDTO dto = new EstudianteDTO();
+            // Si estamos editando, conservar el id para que el servicio haga update
+            if (editingId != null) dto.setId(editingId);
             dto.setNombre(tfNombre.getText());
             dto.setApellido(tfApellido.getText());
             dto.setTipoDocumento(cbTipoDocumento.getValue());
@@ -213,10 +384,37 @@ public class EstudianteController {
             // Mensaje claro para errores de autorización
             lblMensaje.setText(ex.getMessage());
         } catch (BusinessException ex) {
-            lblMensaje.setText(ex.getMessage());
+            // Si es un error relacionado con el documento, mostrarlo junto al campo
+            String msg = ex.getMessage() == null ? "" : ex.getMessage();
+            if (msg.toLowerCase().contains("documento")) {
+                if (lblDocError != null) {
+                    lblDocError.setText(msg);
+                    lblDocError.setVisible(true);
+                    lblDocError.setStyle("-fx-text-fill: #b00020; -fx-font-size: 11px;");
+                } else {
+                    lblMensaje.setText(msg);
+                }
+            } else {
+                lblMensaje.setText(msg);
+            }
         } catch (Exception ex) {
             lblMensaje.setText("Error al guardar: " + ex.getMessage());
         }
+    }
+
+    private void cargarEstudianteEnFormulario(EstudianteDTO dto) {
+        if (dto == null) return;
+        this.editingId = dto.getId();
+        tfNombre.setText(dto.getNombre());
+        tfApellido.setText(dto.getApellido());
+        cbTipoDocumento.setValue(dto.getTipoDocumento());
+        tfNumeroDocumento.setText(dto.getNumeroDocumento());
+        tfTelefono.setText(dto.getTelefono());
+        tfDireccion.setText(dto.getDireccion());
+        tfEmail.setText(dto.getEmail());
+        chActivo.setSelected(dto.isActivo());
+        // Indicar visualmente al usuario que está en modo edición
+        if (btnGuardar != null) btnGuardar.setText("Actualizar");
     }
 
     /**
@@ -261,6 +459,46 @@ public class EstudianteController {
         }
     }
 
+    /**
+     * Actualiza el estado (visible/disabled) de los botones globales según el estudiante seleccionado
+     */
+    private void updateTopButtonsState(EstudianteDTO dto) {
+        if (btnEditarSelectedTop == null) return;
+        if (dto == null) {
+            btnEditarSelectedTop.setDisable(true);
+            btnInactivarSelectedTop.setDisable(true);
+            btnReactivarSelectedTop.setDisable(true);
+            return;
+        }
+        // Permisos
+        try {
+            boolean puedeEditar = this.authorizationService.hasPermission("ESTUDIANTE_EDITAR");
+            btnEditarSelectedTop.setDisable(!puedeEditar);
+        } catch (Exception ex) {
+            btnEditarSelectedTop.setDisable(true);
+        }
+        try {
+            boolean puedeInactivar = this.authorizationService.hasPermission("ESTUDIANTE_INACTIVAR");
+            // Mostrar según estado: si está activo mostrar Inactivar; si está inactivo, mostrar Reactivar
+            if (dto.isActivo()) {
+                btnInactivarSelectedTop.setVisible(true);
+                btnInactivarSelectedTop.setManaged(true);
+                btnReactivarSelectedTop.setVisible(false);
+                btnReactivarSelectedTop.setManaged(false);
+                btnInactivarSelectedTop.setDisable(!puedeInactivar);
+            } else {
+                btnInactivarSelectedTop.setVisible(false);
+                btnInactivarSelectedTop.setManaged(false);
+                btnReactivarSelectedTop.setVisible(true);
+                btnReactivarSelectedTop.setManaged(true);
+                btnReactivarSelectedTop.setDisable(!puedeInactivar);
+            }
+        } catch (Exception ex) {
+            btnInactivarSelectedTop.setDisable(true);
+            btnReactivarSelectedTop.setDisable(true);
+        }
+    }
+
     private void prevPage() {
         if (currentPage > 0) {
             currentPage--;
@@ -288,6 +526,9 @@ public class EstudianteController {
             lblDocError.setText("");
             lblDocError.setVisible(false);
         }
+        // Reset modo edición
+        this.editingId = null;
+        if (btnGuardar != null) btnGuardar.setText("Guardar");
     }
 }
 

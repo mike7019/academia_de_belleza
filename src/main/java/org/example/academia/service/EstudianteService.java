@@ -152,5 +152,57 @@ public class EstudianteService {
 		List<EstudianteDTO> items = entities.stream().map(EstudianteMapper::toDTO).collect(Collectors.toList());
 		return new PaginatedResult<>(items, total, page, size);
 	}
+
+	/**
+	 * Inactivar (soft-delete) un estudiante: marca activo=false y registra fecha de baja.
+	 * Requiere permiso: ESTUDIANTE_INACTIVAR
+	 */
+	public void inactivate(Long id) {
+		if (id == null) throw new BusinessException("Id de estudiante no proporcionado");
+		authorizationService.requirePermission("ESTUDIANTE_INACTIVAR");
+		Estudiante e = repository.findById(id).orElseThrow(() -> new BusinessException("Estudiante no encontrado"));
+		if (!e.isActivo()) return; // ya inactivo
+		String antes = EstudianteMapper.toDTO(e).toString();
+		e.setActivo(false);
+		e.setFechaBaja(java.time.LocalDate.now());
+		Estudiante saved = repository.save(e);
+		if (auditoriaRepository != null) {
+			Auditoria a = new Auditoria();
+			a.setFecha(java.time.LocalDateTime.now());
+			a.setUsuario(SessionManager.getInstance().getCurrentUser());
+			a.setAccion("INACTIVAR_ESTUDIANTE");
+			a.setEntidad("Estudiante");
+			a.setIdEntidad(saved.getId());
+			a.setDetalleAntes(antes);
+			a.setDetalleDespues(EstudianteMapper.toDTO(saved).toString());
+			auditoriaRepository.save(a);
+		}
+	}
+
+	/**
+	 * Reactivar un estudiante previamente inactivado.
+	 * Requiere permiso: ESTUDIANTE_INACTIVAR
+	 */
+	public void reactivate(Long id) {
+		if (id == null) throw new BusinessException("Id de estudiante no proporcionado");
+		authorizationService.requirePermission("ESTUDIANTE_INACTIVAR");
+		Estudiante e = repository.findById(id).orElseThrow(() -> new BusinessException("Estudiante no encontrado"));
+		if (e.isActivo()) return; // ya activo
+		String antes = EstudianteMapper.toDTO(e).toString();
+		e.setActivo(true);
+		e.setFechaBaja(null);
+		Estudiante saved = repository.save(e);
+		if (auditoriaRepository != null) {
+			Auditoria a = new Auditoria();
+			a.setFecha(java.time.LocalDateTime.now());
+			a.setUsuario(SessionManager.getInstance().getCurrentUser());
+			a.setAccion("REACTIVAR_ESTUDIANTE");
+			a.setEntidad("Estudiante");
+			a.setIdEntidad(saved.getId());
+			a.setDetalleAntes(antes);
+			a.setDetalleDespues(EstudianteMapper.toDTO(saved).toString());
+			auditoriaRepository.save(a);
+		}
+	}
 }
 
