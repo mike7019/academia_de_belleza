@@ -4,7 +4,9 @@ import org.example.academia.dto.EstudianteDTO;
 import org.example.academia.mapper.EstudianteMapper;
 import org.example.academia.domain.entity.Estudiante;
 import org.example.academia.repository.EstudianteRepository;
+import org.example.academia.repository.EstudianteRepositoryImpl;
 import org.example.academia.repository.AuditoriaRepository;
+import org.example.academia.repository.AuditoriaRepositoryImpl;
 import org.example.academia.domain.entity.Auditoria;
 import org.example.academia.security.SessionManager;
 import org.example.academia.security.AuthorizationService;
@@ -22,6 +24,14 @@ public class EstudianteService {
 	private final EstudianteRepository repository;
 	private final AuthorizationService authorizationService;
 	private final AuditoriaRepository auditoriaRepository;
+	private static final String PERMISO_ESTUDIANTE_VER = "ESTUDIANTE_VER";
+	private static final String PERMISO_ESTUDIANTE_LISTAR = "ESTUDIANTE_LISTAR";
+
+	public EstudianteService() {
+		this.repository = new EstudianteRepositoryImpl();
+		this.authorizationService = new AuthorizationService();
+		this.auditoriaRepository = new AuditoriaRepositoryImpl();
+	}
 
 	public EstudianteService(EstudianteRepository repository, AuthorizationService authorizationService, AuditoriaRepository auditoriaRepository) {
 		this.repository = repository;
@@ -35,8 +45,6 @@ public class EstudianteService {
 	 * - numeroDocumento obligatorio y único
 	 */
 	public EstudianteDTO save(EstudianteDTO dto) {
-		authorizationService.requirePermission("ESTUDIANTE_CREAR");
-
 		if (dto == null) {
 			throw new BusinessException("Datos de estudiante no proporcionados");
 
@@ -114,13 +122,16 @@ public class EstudianteService {
 	 */
 	public EstudianteDTO findByNumeroDocumento(String numeroDocumento) {
 		if (numeroDocumento == null || numeroDocumento.isBlank()) return null;
-		if (!authorizationService.hasPermission("ESTUDIANTE_VER") && !authorizationService.hasPermission("ESTUDIANTE_LISTAR")) {
+		if (!tienePermisoLectura()) {
 			throw new AuthException("Permiso denegado: ESTUDIANTE_VER o ESTUDIANTE_LISTAR");
 		}
 		return repository.findByNumeroDocumento(numeroDocumento).map(EstudianteMapper::toDTO).orElse(null);
 	}
 
 	public List<EstudianteDTO> findAll() {
+		if (!tienePermisoLectura()) {
+			throw new AuthException("Permiso denegado: ESTUDIANTE_VER o ESTUDIANTE_LISTAR");
+		}
 		return repository.findAll().stream().map(EstudianteMapper::toDTO).collect(Collectors.toList());
 	}
 
@@ -139,7 +150,7 @@ public class EstudianteService {
 												  int page, int size, String sortBy, boolean asc) {
 		// Compatibilidad: aceptar codigo ESTUDIANTE_VER (seed V5) o ESTUDIANTE_LISTAR (seed V6).
 		// Si el usuario no tiene ninguno de los dos permisos, lanzar AuthException.
-		if (!authorizationService.hasPermission("ESTUDIANTE_VER") && !authorizationService.hasPermission("ESTUDIANTE_LISTAR")) {
+		if (!tienePermisoLectura()) {
 			throw new AuthException("Permiso denegado: ESTUDIANTE_VER o ESTUDIANTE_LISTAR");
 		}
 
@@ -203,6 +214,41 @@ public class EstudianteService {
 			a.setDetalleDespues(EstudianteMapper.toDTO(saved).toString());
 			auditoriaRepository.save(a);
 		}
+	}
+
+	/**
+	 * Alias orientados a UI para mantener el mismo contrato conceptual del módulo maestros.
+	 */
+	public List<EstudianteDTO> listarEstudiantesActivos() {
+		if (!tienePermisoLectura()) {
+			throw new AuthException("Permiso denegado: ESTUDIANTE_VER o ESTUDIANTE_LISTAR");
+		}
+		return repository.search(null, null, null, true, 0, Integer.MAX_VALUE, "nombre", true)
+				.stream()
+				.map(EstudianteMapper::toDTO)
+				.collect(Collectors.toList());
+	}
+
+	public EstudianteDTO guardarEstudiante(EstudianteDTO dto) {
+		dto.setId(null);
+		dto.setActivo(true);
+		return save(dto);
+	}
+
+	public EstudianteDTO actualizarEstudiante(EstudianteDTO dto) {
+		if (dto == null || dto.getId() == null) {
+			throw new BusinessException("El estudiante debe tener un ID para actualizar");
+		}
+		return save(dto);
+	}
+
+	public void inactivarEstudiante(Long id) {
+		inactivate(id);
+	}
+
+	private boolean tienePermisoLectura() {
+		return authorizationService.hasPermission(PERMISO_ESTUDIANTE_VER)
+				|| authorizationService.hasPermission(PERMISO_ESTUDIANTE_LISTAR);
 	}
 }
 

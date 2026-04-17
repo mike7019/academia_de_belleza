@@ -6,82 +6,31 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.example.academia.ui.controller.EstudianteController">
-    <center>
+    <top>
         <VBox spacing="10.0">
             <padding>
                 <Insets top="10" right="10" bottom="10" left="10"/>
             </padding>
-            <Label text="Módulo Estudiantes" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
-
-            <GridPane hgap="10" vgap="8">
-                <columnConstraints>
-                    <ColumnConstraints percentWidth="25" />
-                    <ColumnConstraints percentWidth="75" />
-                </columnConstraints>
-                <Label text="Nombre:" GridPane.rowIndex="0" GridPane.columnIndex="0" />
-                <TextField fx:id="tfNombre" GridPane.rowIndex="0" GridPane.columnIndex="1" />
-
-                <Label text="Apellido:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
-                <TextField fx:id="tfApellido" GridPane.rowIndex="1" GridPane.columnIndex="1" />
-
-                <Label text="Tipo Documento:" GridPane.rowIndex="2" GridPane.columnIndex="0" />
-                <ComboBox fx:id="cbTipoDocumento" GridPane.rowIndex="2" GridPane.columnIndex="1" />
-
-                <Label text="Número Documento:" GridPane.rowIndex="3" GridPane.columnIndex="0" />
-                <VBox spacing="2" GridPane.rowIndex="3" GridPane.columnIndex="1">
-                    <TextField fx:id="tfNumeroDocumento" />
-                    <!-- Label para mostrar errores/duplicados junto al campo documento -->
-                    <Label fx:id="lblDocError" textFill="red" style="-fx-font-size: 11px;" />
-                </VBox>
-
-                <Label text="Teléfono:" GridPane.rowIndex="4" GridPane.columnIndex="0" />
-                <TextField fx:id="tfTelefono" GridPane.rowIndex="4" GridPane.columnIndex="1" />
-
-                <Label text="Email:" GridPane.rowIndex="5" GridPane.columnIndex="0" />
-                <TextField fx:id="tfEmail" GridPane.rowIndex="5" GridPane.columnIndex="1" />
-
-                <Label text="Dirección:" GridPane.rowIndex="6" GridPane.columnIndex="0" />
-                <TextField fx:id="tfDireccion" GridPane.rowIndex="6" GridPane.columnIndex="1" />
-
-                <Label text="Activo:" GridPane.rowIndex="7" GridPane.columnIndex="0" />
-                <CheckBox fx:id="chActivo" selected="true" GridPane.rowIndex="7" GridPane.columnIndex="1" />
-            </GridPane>
-
-            <!-- Contenedor reservado para botones de acción (Editar / Inactivar / Reactivar) -->
-            <HBox fx:id="actionButtonsBox" spacing="6" />
-
-            <HBox spacing="8">
-                <Button text="Guardar" fx:id="btnGuardar" />
-                <Button text="Nuevo" fx:id="btnNuevo" />
-                <Label fx:id="lblMensaje" />
-            </HBox>
-
-            <HBox spacing="8">
-                <CheckBox fx:id="chFiltrarActivos" text="Sólo activos" />
-                <!-- Espacio reservado para paginación/orden en futuras mejoras -->
-            </HBox>
-
-            <TableView fx:id="tblEstudiantes" prefHeight="200">
-                <columns>
-                    <TableColumn fx:id="colId" text="ID" />
-                    <TableColumn fx:id="colNombre" text="Nombre" />
-                    <!-- Columna que muestra nombre y estado (Activo/Inactivo) -->
-                    <TableColumn fx:id="colNombreEstado" text="Nombre (Estado)" />
-                    <TableColumn fx:id="colApellido" text="Apellido" />
-                    <TableColumn fx:id="colDocumento" text="Documento" />
-                    <TableColumn fx:id="colEmail" text="Email" />
-                    <TableColumn fx:id="colDireccion" text="Dirección" />
-                    <TableColumn fx:id="colTelefono" text="Teléfono" />
-                </columns>
-            </TableView>
-            <HBox spacing="8" alignment="CENTER_RIGHT">
-                <Button text="Anterior" fx:id="btnPrev" />
-                <Label fx:id="lblPageInfo" text="Página 1 de 1" />
-                <Button text="Siguiente" fx:id="btnNext" />
-                <Label text="Tamaño:" />
-                <ComboBox fx:id="cbPageSize" />
+            <Label text="Gestión de Estudiantes" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+            <HBox spacing="10.0">
+                <Button text="Nuevo Estudiante" onAction="#onNuevoEstudiante"/>
+                <Button text="Editar" onAction="#onEditarEstudiante"/>
+                <Button text="Inactivar" onAction="#onInactivarEstudiante"/>
+                <Button text="Ver Matrículas"/>
             </HBox>
         </VBox>
+    </top>
+    <center>
+        <TableView fx:id="estudiantesTable">
+            <columns>
+                <TableColumn fx:id="nombreColumn" text="Nombre" prefWidth="150"/>
+                <TableColumn fx:id="apellidoColumn" text="Apellido" prefWidth="150"/>
+                <TableColumn fx:id="documentoColumn" text="Documento" prefWidth="120"/>
+                <TableColumn fx:id="telefonoColumn" text="Teléfono" prefWidth="120"/>
+                <TableColumn fx:id="emailColumn" text="Email" prefWidth="200"/>
+                <TableColumn fx:id="activoColumn" text="Activo" prefWidth="80"/>
+            </columns>
+        </TableView>
     </center>
 </BorderPane>
 
