@@ -1,31 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.example.academia.ui.controller.RegistroController">
-    <center>
-        <VBox alignment="CENTER" spacing="10.0">
-            <padding>
-                <Insets top="20" right="40" bottom="20" left="40"/>
-            </padding>
-            <Label text="Registro de usuario" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:id="contentPane"
+           fx:controller="org.example.academia.ui.controller.RegistroController"
+           stylesheets="@../styles/dashboard.css"
+           styleClass="content-pane"
+           alignment="CENTER"
+           prefWidth="Infinity" prefHeight="Infinity"
+           maxWidth="Infinity" maxHeight="Infinity">
+    <VBox alignment="CENTER" spacing="12.0" styleClass="content-card"
+          maxWidth="Infinity" maxHeight="Infinity">
+        <Label text="Registro de usuario" styleClass="content-title"/>
 
-            <TextField fx:id="nombreCompletoField" promptText="Nombre completo" maxWidth="250"/>
-            <TextField fx:id="emailField" promptText="Correo electrónico" maxWidth="250"/>
-            <TextField fx:id="usernameField" promptText="Usuario" maxWidth="250"/>
-            <PasswordField fx:id="passwordField" promptText="Contraseña" maxWidth="250"/>
-            <PasswordField fx:id="confirmPasswordField" promptText="Confirmar contraseña" maxWidth="250"/>
+        <TextField fx:id="nombreCompletoField" promptText="Nombre completo" maxWidth="250"/>
+        <TextField fx:id="emailField" promptText="Correo electrónico" maxWidth="250"/>
+        <TextField fx:id="usernameField" promptText="Usuario" maxWidth="250"/>
+        <PasswordField fx:id="passwordField" promptText="Contraseña" maxWidth="250"/>
+        <PasswordField fx:id="confirmPasswordField" promptText="Confirmar contraseña" maxWidth="250"/>
 
-            <HBox spacing="10.0" alignment="CENTER">
-                <Button text="Registrar" onAction="#onRegister"/>
-                <Button text="Volver al login" onAction="#onBackToLogin"/>
-            </HBox>
+        <HBox spacing="10.0" alignment="CENTER">
+            <Button text="Registrar" onAction="#onRegister"/>
+            <Button text="Volver al login" onAction="#onBackToLogin"/>
+        </HBox>
 
-            <Label fx:id="messageLabel" textFill="red"/>
-        </VBox>
-    </center>
-</BorderPane>
+        <Label fx:id="messageLabel" textFill="red"/>
+    </VBox>
+</StackPane>
 

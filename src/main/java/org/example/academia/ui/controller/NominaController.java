@@ -1,6 +1,7 @@
 package org.example.academia.ui.controller;
 
 import javafx.fxml.FXML;
+import org.example.academia.ui.controller.components.ModuleCardController;
 
 /**
  * Controlador placeholder para el módulo de Nómina.
@@ -11,8 +12,14 @@ import javafx.fxml.FXML;
 public class NominaController {
 
     @FXML
+    private ModuleCardController moduleCardController;
+
+    @FXML
     private void initialize() {
-        // Inicialización futura de bindings y carga de datos.
+        moduleCardController.setTexts(
+                "Módulo Nómina",
+                "Pantalla de gestión de nómina de profesores (placeholder)."
+        );
     }
 }
 

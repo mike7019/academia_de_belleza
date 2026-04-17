@@ -8,6 +8,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -160,6 +161,8 @@ public class DashboardController {
 
         VBox card = new VBox(8.0, title, subtitle);
         card.getStyleClass().add("content-card");
+        card.setAlignment(javafx.geometry.Pos.CENTER);
+        card.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
         setContent(card);
     }
@@ -174,6 +177,12 @@ public class DashboardController {
 
         node.setOpacity(0);
         contentPane.getChildren().setAll(node);
+
+        if (node instanceof Region region) {
+            region.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+            region.prefWidthProperty().bind(contentPane.widthProperty());
+            region.prefHeightProperty().bind(contentPane.heightProperty());
+        }
 
         FadeTransition fade = new FadeTransition(Duration.millis(200), node);
         fade.setFromValue(0.0);
