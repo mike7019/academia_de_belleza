@@ -1,5 +1,6 @@
 package org.example.academia.ui.controller;
 
+import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -10,11 +11,15 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.Pagination;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Window;
+import javafx.util.Duration;
 import org.example.academia.domain.enums.TipoPagoProfesor;
 import org.example.academia.dto.MaestroDTO;
 import org.example.academia.mapper.MaestroMapper;
@@ -23,6 +28,8 @@ import org.example.academia.service.MaestroService;
 import org.example.academia.util.BusinessException;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -31,6 +38,11 @@ import java.util.Optional;
  * Gestiona listado, creación, edición e inactivación de maestros.
  */
 public class MaestroController {
+
+    private static final String ESTADO_ACTIVOS = "Activos";
+    private static final String ESTADO_INACTIVOS = "Inactivos";
+    private static final String ESTADO_TODOS = "Todos";
+    private static final int PAGE_SIZE = 20;
 
     @FXML
     private TableView<MaestroDTO> maestrosTable;
@@ -53,12 +65,33 @@ public class MaestroController {
     @FXML
     private TableColumn<MaestroDTO, Boolean> activoColumn;
 
+    @FXML
+    private TextField filtroNombreField;
+
+    @FXML
+    private TextField filtroDocumentoField;
+
+    @FXML
+    private ComboBox<String> filtroEstadoCombo;
+
+    @FXML
+    private Pagination paginacionMaestros;
+
+    @FXML
+    private Label resumenPaginaLabel;
+
     private final MaestroService maestroService;
     private final ObservableList<MaestroDTO> maestrosList;
+    private final List<MaestroDTO> maestrosFiltrados;
+
+    private Tooltip notificacionTooltip;
+    private PauseTransition ocultarNotificacion;
+    private boolean actualizandoPaginacion;
 
     public MaestroController() {
         this.maestroService = new MaestroService();
         this.maestrosList = FXCollections.observableArrayList();
+        this.maestrosFiltrados = new ArrayList<>();
     }
 
     @FXML
@@ -70,8 +103,21 @@ public class MaestroController {
         tipoPagoColumn.setCellValueFactory(new PropertyValueFactory<>("tipoPagoProfesor"));
         activoColumn.setCellValueFactory(new PropertyValueFactory<>("activo"));
 
+        filtroEstadoCombo.setItems(FXCollections.observableArrayList(ESTADO_ACTIVOS, ESTADO_INACTIVOS, ESTADO_TODOS));
+        filtroEstadoCombo.setValue(ESTADO_ACTIVOS);
+
+        paginacionMaestros.currentPageIndexProperty().addListener((obs, oldVal, newVal) -> {
+            if (!actualizandoPaginacion) {
+                renderizarPagina(newVal.intValue());
+            }
+        });
+
+        // Tooltip reutilizable para mensajes breves (toast).
+        notificacionTooltip = new Tooltip();
+        notificacionTooltip.setAutoHide(true);
+
         maestrosTable.setItems(maestrosList);
-        cargarMaestros();
+        cargarMaestros(0);
     }
 
     @FXML
@@ -83,7 +129,7 @@ public class MaestroController {
         showMaestroDialog(nuevo, false).ifPresent(dto -> {
             try {
                 maestroService.guardarMaestro(MaestroMapper.toEntity(dto));
-                cargarMaestros();
+                cargarMaestros(0);
                 showInfo("Maestro creado correctamente.");
             } catch (BusinessException | AuthException ex) {
                 showError(ex.getMessage());
@@ -103,7 +149,7 @@ public class MaestroController {
         showMaestroDialog(editable, true).ifPresent(dto -> {
             try {
                 maestroService.actualizarMaestro(MaestroMapper.toEntity(dto));
-                cargarMaestros();
+                cargarMaestros(0);
                 showInfo("Maestro actualizado correctamente.");
             } catch (BusinessException | AuthException ex) {
                 showError(ex.getMessage());
@@ -131,12 +177,26 @@ public class MaestroController {
         if (resultado.isPresent() && resultado.get() == ButtonType.YES) {
             try {
                 maestroService.inactivarMaestro(seleccionado.getId());
-                cargarMaestros();
+                int paginaActual = paginacionMaestros != null ? paginacionMaestros.getCurrentPageIndex() : 0;
+                cargarMaestros(paginaActual);
                 showInfo("Maestro inactivado correctamente.");
             } catch (BusinessException | AuthException ex) {
                 showError(ex.getMessage());
             }
         }
+    }
+
+    @FXML
+    private void onFiltrarMaestros() {
+        cargarMaestros(0);
+    }
+
+    @FXML
+    private void onLimpiarFiltros() {
+        filtroNombreField.clear();
+        filtroDocumentoField.clear();
+        filtroEstadoCombo.setValue(ESTADO_ACTIVOS);
+        cargarMaestros(0);
     }
 
     private Optional<MaestroDTO> showMaestroDialog(MaestroDTO base, boolean edicion) {
@@ -370,25 +430,118 @@ public class MaestroController {
     }
 
     private void cargarMaestros() {
+        cargarMaestros(0);
+    }
+
+    private void cargarMaestros(int paginaPreferida) {
         maestrosList.clear();
+        maestrosFiltrados.clear();
         try {
-            maestroService.listarMaestrosActivos().forEach(maestro -> maestrosList.add(MaestroMapper.toDTO(maestro)));
+            String nombre = valorFiltro(filtroNombreField.getText());
+            String documento = valorFiltro(filtroDocumentoField.getText());
+            Boolean activo = obtenerEstadoFiltro();
+
+            maestroService.listarMaestros(nombre, documento, activo)
+                    .forEach(maestro -> maestrosFiltrados.add(MaestroMapper.toDTO(maestro)));
+
+            actualizarPaginacion(paginaPreferida);
         } catch (BusinessException | AuthException ex) {
             showError(ex.getMessage());
+            actualizarPaginacion(0);
         }
     }
 
+    private void actualizarPaginacion(int paginaPreferida) {
+        int total = maestrosFiltrados.size();
+        int totalPaginas = Math.max(1, (int) Math.ceil(total / (double) PAGE_SIZE));
+        int paginaObjetivo = Math.max(0, Math.min(paginaPreferida, totalPaginas - 1));
+
+        actualizandoPaginacion = true;
+        paginacionMaestros.setPageCount(totalPaginas);
+        paginacionMaestros.setCurrentPageIndex(paginaObjetivo);
+        actualizandoPaginacion = false;
+
+        renderizarPagina(paginaObjetivo);
+    }
+
+    private void renderizarPagina(int pageIndex) {
+        maestrosList.clear();
+
+        int total = maestrosFiltrados.size();
+        if (total == 0) {
+            resumenPaginaLabel.setText("Mostrando 0 de 0");
+            return;
+        }
+
+        int fromIndex = pageIndex * PAGE_SIZE;
+        if (fromIndex >= total) {
+            fromIndex = Math.max(0, (total - 1) / PAGE_SIZE * PAGE_SIZE);
+            pageIndex = fromIndex / PAGE_SIZE;
+            actualizandoPaginacion = true;
+            paginacionMaestros.setCurrentPageIndex(pageIndex);
+            actualizandoPaginacion = false;
+        }
+
+        int toIndex = Math.min(fromIndex + PAGE_SIZE, total);
+        maestrosList.addAll(maestrosFiltrados.subList(fromIndex, toIndex));
+        resumenPaginaLabel.setText("Mostrando " + (fromIndex + 1) + "-" + toIndex + " de " + total);
+    }
+
+    private String valorFiltro(String valor) {
+        if (valor == null || valor.isBlank()) {
+            return null;
+        }
+        return valor.trim();
+    }
+
+    private Boolean obtenerEstadoFiltro() {
+        String estado = filtroEstadoCombo.getValue();
+        if (ESTADO_ACTIVOS.equals(estado)) {
+            return true;
+        }
+        if (ESTADO_INACTIVOS.equals(estado)) {
+            return false;
+        }
+        return null;
+    }
+
     private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setHeaderText("Error");
-        alert.setContentText(message);
-        alert.showAndWait();
+        mostrarNotificacion(message, true);
     }
 
     private void showInfo(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setHeaderText("Información");
-        alert.setContentText(message);
-        alert.showAndWait();
+        mostrarNotificacion(message, false);
+    }
+
+    private void mostrarNotificacion(String message, boolean esError) {
+        if (maestrosTable == null || maestrosTable.getScene() == null) {
+            return;
+        }
+
+        Window window = maestrosTable.getScene().getWindow();
+        if (window == null) {
+            return;
+        }
+
+        String estiloBase = "-fx-font-size: 12px; -fx-background-radius: 6; -fx-padding: 8 12 8 12;";
+        String estiloTipo = esError
+                ? "-fx-background-color: #d32f2f; -fx-text-fill: white;"
+                : "-fx-background-color: #2e7d32; -fx-text-fill: white;";
+
+        notificacionTooltip.hide();
+        notificacionTooltip.setText(message);
+        notificacionTooltip.setStyle(estiloBase + estiloTipo);
+
+        double x = window.getX() + window.getWidth() - 360;
+        double y = window.getY() + window.getHeight() - 90;
+        notificacionTooltip.show(window, x, y);
+
+        if (ocultarNotificacion != null) {
+            ocultarNotificacion.stop();
+        }
+
+        ocultarNotificacion = new PauseTransition(Duration.seconds(3));
+        ocultarNotificacion.setOnFinished(event -> notificacionTooltip.hide());
+        ocultarNotificacion.play();
     }
 }

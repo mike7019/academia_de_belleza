@@ -43,4 +43,14 @@ public interface MaestroRepository {
      * @return Optional con el maestro si existe
      */
     Optional<Maestro> findById(Long id);
+
+    /**
+     * Busca maestros aplicando filtros opcionales.
+     *
+     * @param nombre texto parcial del nombre (ignora mayúsculas/minúsculas), opcional.
+     * @param numeroDocumento texto parcial del documento, opcional.
+     * @param activo estado del maestro; null para no filtrar por estado.
+     * @return lista de maestros que cumplen los filtros.
+     */
+    List<Maestro> search(String nombre, String numeroDocumento, Boolean activo);
 }
