@@ -13,9 +13,9 @@
             </padding>
             <Label text="Gestión de Maestros" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
             <HBox spacing="10.0">
-                <Button text="Nuevo Maestro"/>
-                <Button text="Editar"/>
-                <Button text="Inactivar"/>
+                <Button text="Nuevo Maestro" onAction="#onNuevoMaestro"/>
+                <Button text="Editar" onAction="#onEditarMaestro"/>
+                <Button text="Inactivar" onAction="#onInactivarMaestro"/>
                 <Button text="Ver Cursos Asignados"/>
             </HBox>
         </VBox>
