@@ -13,10 +13,12 @@
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
 
         <properties>
-            <!-- Config por defecto (coincide con docker-compose). Se pueden sobreescribir
+            <!-- Config por defecto local (docker/local). Se pueden sobreescribir
                  vía DatabaseConfig usando propiedades pasadas al crear el EMF. -->
             <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
             <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/academia_db"/>
+            <!-- Restaurar cuando vuelva el servidor publico:
+                 <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://206.62.139.100:5432/academia_db"/> -->
             <property name="jakarta.persistence.jdbc.user" value="academia_user"/>
             <property name="jakarta.persistence.jdbc.password" value="academia_pass"/>
 

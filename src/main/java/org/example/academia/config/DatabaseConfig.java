@@ -21,8 +21,9 @@ public class DatabaseConfig {
 	private static final String PERSISTENCE_UNIT_NAME = "academiaPU";
 
 	// Permite sobreescribir por variables de entorno si se desea.
-	//private static final String DEFAULT_JDBC_URL = "jdbc:postgresql://localhost:5432/academia_db";
-	private static final String DEFAULT_JDBC_URL = "jdbc:postgresql://185.254.206.46:5432/academia_db";
+	private static final String DEFAULT_JDBC_URL = "jdbc:postgresql://localhost:5432/academia_db";
+	// Restaurar cuando el servidor publico vuelva a estar disponible:
+	// private static final String DEFAULT_JDBC_URL = "jdbc:postgresql://206.62.139.100:5432/academia_db";
 	private static final String DEFAULT_DB_USER   = "academia_user";
 	private static final String DEFAULT_DB_PASS   = "academia_pass";
 
@@ -88,5 +89,3 @@ public class DatabaseConfig {
 		}
 	}
 }
-
-
