@@ -1,13 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-           fx:id="contentPane"
-           fx:controller="org.example.academia.ui.controller.CursoController"
-           styleClass="content-pane"
-           alignment="CENTER"
-           prefWidth="Infinity" prefHeight="Infinity"
-           maxWidth="Infinity" maxHeight="Infinity">
-    <fx:include fx:id="moduleCard" source="components/module-card.fxml"/>
-</StackPane>
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.academia.ui.controller.CursoController">
+    <top>
+        <VBox spacing="10.0">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <Label text="Gestion de Cursos" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+            <HBox spacing="10.0">
+                <Button text="Nuevo Curso" onAction="#onNuevoCurso"/>
+                <Button text="Editar" onAction="#onEditarCurso"/>
+                <Button text="Cambiar Estado" onAction="#onCambiarEstadoCurso"/>
+            </HBox>
+            <HBox spacing="10.0" alignment="CENTER_LEFT">
+                <Label text="Nombre:"/>
+                <TextField fx:id="filtroNombreField" promptText="Buscar por nombre" prefWidth="220"/>
+                <Label text="Estado:"/>
+                <ComboBox fx:id="filtroEstadoCombo" prefWidth="170"/>
+                <Label text="Inicio:"/>
+                <DatePicker fx:id="filtroFechaInicioPicker" prefWidth="130"/>
+                <Label text="Fin:"/>
+                <DatePicker fx:id="filtroFechaFinPicker" prefWidth="130"/>
+                <Button text="Filtrar" onAction="#onFiltrarCursos"/>
+                <Button text="Limpiar" onAction="#onLimpiarFiltros"/>
+            </HBox>
+        </VBox>
+    </top>
+    <center>
+        <TableView fx:id="cursosTable">
+            <columns>
+                <TableColumn fx:id="nombreColumn" text="Curso" prefWidth="170"/>
+                <TableColumn fx:id="maestroColumn" text="Maestro" prefWidth="180"/>
+                <TableColumn fx:id="estadoColumn" text="Estado" prefWidth="110"/>
+                <TableColumn fx:id="fechaInicioColumn" text="Inicio" prefWidth="100"/>
+                <TableColumn fx:id="fechaFinColumn" text="Fin" prefWidth="100"/>
+                <TableColumn fx:id="cupoMaximoColumn" text="Cupo Max" prefWidth="90"/>
+                <TableColumn fx:id="cuposOcupadosColumn" text="Ocupados" prefWidth="90"/>
+                <TableColumn fx:id="cuposDisponiblesColumn" text="Disponibles" prefWidth="100"/>
+                <TableColumn fx:id="precioBaseColumn" text="Precio Base" prefWidth="120"/>
+            </columns>
+        </TableView>
+    </center>
+    <bottom>
+        <HBox spacing="10.0" alignment="CENTER_RIGHT" style="-fx-padding: 8 10 8 10;">
+            <Label fx:id="resumenPaginaLabel" text="Mostrando 0 de 0"/>
+            <Pagination fx:id="paginacionCursos" maxPageIndicatorCount="7"/>
+        </HBox>
+    </bottom>
+</BorderPane>
