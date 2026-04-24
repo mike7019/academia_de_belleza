@@ -7,6 +7,7 @@ import org.example.academia.repository.MaestroRepositoryImpl;
 import org.example.academia.security.AuthorizationService;
 import org.example.academia.util.BusinessException;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,6 +46,26 @@ public class MaestroService {
     public List<Maestro> listarMaestrosActivos() {
         authorizationService.requirePermission(PERMISO_MAESTRO_VER);
         return maestroRepository.findByActivoTrue();
+    }
+
+    /**
+     * MAE-11: expone la configuración de pago de un maestro para cálculos de nómina.
+     */
+    public Maestro obtenerMaestroParaNomina(Long maestroId) {
+        authorizationService.requirePermission(PERMISO_MAESTRO_VER);
+        if (maestroId == null) {
+            throw new BusinessException("Debe indicar el maestro para cálculo de nómina");
+        }
+
+        Maestro maestro = maestroRepository.findById(maestroId)
+                .orElseThrow(() -> new BusinessException("No se encontró el maestro con ID: " + maestroId));
+
+        if (!maestro.isActivo()) {
+            throw new BusinessException("El maestro está inactivo y no puede usarse en nómina");
+        }
+
+        validarModalidadPago(maestro);
+        return maestro;
     }
 
     /**
@@ -130,6 +151,7 @@ public class MaestroService {
                 if (maestro.getTarifaHora() == null) {
                     throw new BusinessException("La tarifa por hora es obligatoria para modalidad POR_HORA");
                 }
+                validarMayorACero(maestro.getTarifaHora(), "La tarifa por hora");
                 if (maestro.getSalarioMensual() != null || maestro.getTarifaPorCurso() != null || maestro.getPorcentajePorCurso() != null) {
                     throw new BusinessException("Solo la tarifa por hora debe estar informada para modalidad POR_HORA");
                 }
@@ -138,6 +160,7 @@ public class MaestroService {
                 if (maestro.getSalarioMensual() == null) {
                     throw new BusinessException("El salario mensual es obligatorio para modalidad FIJO_MENSUAL");
                 }
+                validarMayorACero(maestro.getSalarioMensual(), "El salario mensual");
                 if (maestro.getTarifaHora() != null || maestro.getTarifaPorCurso() != null || maestro.getPorcentajePorCurso() != null) {
                     throw new BusinessException("Solo el salario mensual debe estar informado para modalidad FIJO_MENSUAL");
                 }
@@ -146,6 +169,7 @@ public class MaestroService {
                 if (maestro.getTarifaPorCurso() == null) {
                     throw new BusinessException("La tarifa por curso es obligatoria para modalidad POR_CURSO");
                 }
+                validarMayorACero(maestro.getTarifaPorCurso(), "La tarifa por curso");
                 if (maestro.getTarifaHora() != null || maestro.getSalarioMensual() != null || maestro.getPorcentajePorCurso() != null) {
                     throw new BusinessException("Solo la tarifa por curso debe estar informada para modalidad POR_CURSO");
                 }
@@ -154,12 +178,22 @@ public class MaestroService {
                 if (maestro.getPorcentajePorCurso() == null) {
                     throw new BusinessException("El porcentaje por curso es obligatorio para modalidad PORCENTAJE");
                 }
+                validarMayorACero(maestro.getPorcentajePorCurso(), "El porcentaje por curso");
+                if (maestro.getPorcentajePorCurso().compareTo(new BigDecimal("100")) > 0) {
+                    throw new BusinessException("El porcentaje por curso no puede superar 100");
+                }
                 if (maestro.getTarifaHora() != null || maestro.getSalarioMensual() != null || maestro.getTarifaPorCurso() != null) {
                     throw new BusinessException("Solo el porcentaje debe estar informado para modalidad PORCENTAJE");
                 }
                 break;
             default:
                 throw new BusinessException("Modalidad de pago no soportada: " + maestro.getTipoPagoProfesor());
+        }
+    }
+
+    private void validarMayorACero(BigDecimal valor, String campo) {
+        if (valor.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException(campo + " debe ser mayor a 0");
         }
     }
 
