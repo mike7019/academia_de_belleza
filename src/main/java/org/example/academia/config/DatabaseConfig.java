@@ -22,8 +22,8 @@ public class DatabaseConfig {
 
 	// Permite sobreescribir por variables de entorno si se desea.
 	private static final String DEFAULT_JDBC_URL = "jdbc:postgresql://localhost:5432/academia_db";
-	//private static final String DEFAULT_JDBC_URL = "jdbc:postgresql://185.254.206.46:5432/academia_db";
-	//private static final String DEFAULT_JDBC_URL = "jdbc:postgresql://db.aueintxjdckwfudqsebp.supabase.co:5432/postgres?user=postgres&password=academia_pass";
+	// Restaurar cuando el servidor publico vuelva a estar disponible:
+	// private static final String DEFAULT_JDBC_URL = "jdbc:postgresql://206.62.139.100:5432/academia_db";
 	private static final String DEFAULT_DB_USER   = "academia_user";
 	private static final String DEFAULT_DB_PASS   = "academia_pass";
 
@@ -89,5 +89,3 @@ public class DatabaseConfig {
 		}
 	}
 }
-
-

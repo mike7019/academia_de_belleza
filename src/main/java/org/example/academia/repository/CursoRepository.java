@@ -1,7 +1,9 @@
 package org.example.academia.repository;
 
 import org.example.academia.domain.entity.Curso;
+import org.example.academia.domain.enums.EstadoCurso;
 
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.List;
 
@@ -17,6 +19,16 @@ public interface CursoRepository {
 	long getTotalCuposDisponibles();
 
 	/**
+	 * Lista cursos aplicando filtros opcionales.
+	 */
+	List<Curso> search(String nombre, EstadoCurso estado, LocalDate fechaInicio, LocalDate fechaFin);
+
+	/**
+	 * Cuenta matrículas activas asociadas al curso.
+	 */
+	long countMatriculasActivasByCursoId(Long cursoId);
+
+	/**
 	 * Busca un curso por ID.
 	 */
 	Optional<Curso> findById(Long id);
@@ -27,6 +39,3 @@ public interface CursoRepository {
 	Curso save(Curso curso);
 
 }
-
-
-

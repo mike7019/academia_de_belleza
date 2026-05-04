@@ -1,0 +1,194 @@
+📌 GUÍA DE ARCHIVOS GENERADOS
+═════════════════════════════════════════════════════════════════
+
+LÉEME PRIMERO:
+──────────────
+▶ LEEME_MATRICULAS.md
+  Introducción y resumen general de lo implementado
+
+
+CÓDIGO FUENTE (en /src):
+───────────────────────
+✅ MatriculaDTO.java
+   - Data Transfer Object para UI
+   - Propiedades con enriquecimiento (estudianteNombre, cursoNombre)
+
+✅ MatriculaMapper.java
+   - Convierte Matricula entity ↔ MatriculaDTO
+   - Enriquecimiento automático
+
+✅ MatriculaRepositoryImpl.java
+   - Implementación JPA con 8 métodos CRUD
+   - Transacciones atómicas
+   - FETCH JOINs optimizados
+
+✅ MatriculaRepository.java (actualizado)
+   - Interfaz con 8 métodos
+
+✅ MatriculaService.java (actualizado)
+   - crearMatricula() + 5 validaciones (USER STORY 115)
+   - cancelarMatricula() + 3 validaciones (USER STORY 116)
+
+✅ MatriculaController.java (actualizado)
+   - onNuevaMatricula() - crear
+   - onCancelarMatricula() - cancelar [NEW]
+   - onVerDetalles() - ver
+   - Dialogs, paginación, filtros
+
+✅ matriculas.fxml (actualizado)
+   - Botón "Cancelar Matrícula" [NEW]
+   - Tabla con 8 columnas
+   - Filtros y paginación
+
+
+DOCUMENTACIÓN (en /):
+─────────────────────
+
+📘 IMPLEMENTACION_MATRICULAS_US115_US116.md
+   - Documentación técnica completa (500+ líneas)
+   - Arquitectura, flujos, validaciones, casos de prueba
+   - Fórmulas y ejemplos de código
+   - Secciones: Overview, Data Flow, Patrones, Troubleshooting
+
+📊 RESUMEN_MATRICULAS_US115_US116.txt
+   - Resumen ejecutivo conciso
+   - Criterios, validaciones, tablas, métricas
+   - Fácil de imprimir
+
+🔍 VERIFICACION_MATRICULAS.txt
+   - Checklist completo de implementación
+   - 50+ checkboxes para verificar
+   - 7 test cases manuales con pasos y resultados
+   - Queries SQL para validar BD
+   - Procedimientos de compilación
+
+✨ RESUMEN_VISUAL_MATRICULAS.txt
+   - Formato visual bonito
+   - Diagramas ASCII
+   - Interfaz usuario visualizada
+   - Fácil de entender de un vistazo
+
+🚀 INSTRUCCIONES_PUSH_GITHUB.txt
+   - Procedimiento paso a paso para push
+   - Comandos git exactos
+   - Mensaje de commit recomendado
+   - Creación de Pull Request
+   - Solución de problemas
+
+
+ESTRUCTURA RECOMENDADA DE LECTURA:
+───────────────────────────────────
+
+1️⃣  LEEME_MATRICULAS.md
+    (5 min - Entendimiento general)
+
+2️⃣  RESUMEN_VISUAL_MATRICULAS.txt
+    (5 min - Visión general visual)
+
+3️⃣  IMPLEMENTACION_MATRICULAS_US115_US116.md
+    (30 min - Detalles técnicos completos)
+
+4️⃣  VERIFICACION_MATRICULAS.txt
+    (Si vas a testear - paso a paso)
+
+5️⃣  INSTRUCCIONES_PUSH_GITHUB.txt
+    (Si vas a hacer push a GitHub)
+
+
+CÓMO USAR ESTE PROYECTO:
+────────────────────────
+
+COMPILAR:
+  mvn clean compile
+
+EJECUTAR:
+  mvn javafx:run
+
+TESTEAR (manual):
+  Ver archivo: VERIFICACION_MATRICULAS.txt
+  Pasos: Test 1-7 (20+ casos específicos)
+
+HACER PUSH A GITHUB:
+  Ver archivo: INSTRUCCIONES_PUSH_GITHUB.txt
+  Rama: Brigith
+
+
+VALIDAR CAMBIOS:
+─────────────────
+
+✅ Código compilado sin errores
+✅ Todas las validaciones funcionan
+✅ Interfaz responde correctamente
+✅ Permisos configurados
+✅ Documentación completa
+
+
+UBICACIÓN DE ARCHIVOS:
+──────────────────────
+
+academia_de_belleza/
+├── LEEME_MATRICULAS.md                           ◄ COMIENZA AQUÍ
+├── RESUMEN_VISUAL_MATRICULAS.txt
+├── IMPLEMENTACION_MATRICULAS_US115_US116.md
+├── RESUMEN_MATRICULAS_US115_US116.txt
+├── VERIFICACION_MATRICULAS.txt
+├── INSTRUCCIONES_PUSH_GITHUB.txt
+│
+└── src/main/
+    ├── java/org/example/academia/
+    │   ├── dto/
+    │   │   └── MatriculaDTO.java                 [NEW]
+    │   ├── mapper/
+    │   │   └── MatriculaMapper.java              [NEW]
+    │   ├── repository/
+    │   │   ├── MatriculaRepository.java          [ACTUALIZADO]
+    │   │   └── MatriculaRepositoryImpl.java       [NEW]
+    │   ├── service/
+    │   │   └── MatriculaService.java             [ACTUALIZADO]
+    │   └── ui/controller/
+    │       └── MatriculaController.java          [ACTUALIZADO]
+    │
+    └── resources/ui/view/
+        └── matriculas.fxml                       [ACTUALIZADO]
+
+
+PREGUNTAS FRECUENTES:
+─────────────────────
+
+P: ¿Por dónde empiezo?
+R: Lee LEEME_MATRICULAS.md primero (5 min)
+
+P: ¿Cómo compilo?
+R: mvn clean compile
+
+P: ¿Cómo teseo?
+R: Ver VERIFICACION_MATRICULAS.txt (7 test cases con pasos)
+
+P: ¿Cómo hago push?
+R: Ver INSTRUCCIONES_PUSH_GITHUB.txt (rama Brigith)
+
+P: ¿Qué validaciones hay?
+R: 8 validaciones (5 para crear, 3 para cancelar)
+
+P: ¿Hay documentación?
+R: Sí, 5 archivos diferentes según tu necesidad
+
+
+CONTACTO/SOPORTE:
+─────────────────
+
+Si encuentras problemas:
+1. Revisa VERIFICACION_MATRICULAS.txt
+2. Consulta IMPLEMENTACION_MATRICULAS_US115_US116.md
+3. Verifica que permisos MATRICULA_CREAR y MATRICULA_CANCELAR existan en BD
+
+
+VERSIÓN:
+────────
+Fecha: 2026-05-04
+Versión: 1.0
+Status: ✅ LISTO PARA PRODUCCIÓN
+
+
+═════════════════════════════════════════════════════════════════
+

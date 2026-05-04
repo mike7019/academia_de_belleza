@@ -22,6 +22,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Window;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
 import org.example.academia.domain.enums.TipoPagoProfesor;
 import org.example.academia.dto.MaestroDTO;
 import org.example.academia.mapper.MaestroMapper;
@@ -228,6 +229,37 @@ public class MaestroController {
         ComboBox<TipoPagoProfesor> tipoPagoCombo = new ComboBox<>(FXCollections.observableArrayList(TipoPagoProfesor.values()));
         tipoPagoCombo.setValue(base.getTipoPagoProfesor());
 
+        // Configurar StringConverter para mostrar valores legibles
+        tipoPagoCombo.setConverter(new StringConverter<TipoPagoProfesor>() {
+            @Override
+            public String toString(TipoPagoProfesor tipo) {
+                if (tipo == null) return "";
+                switch (tipo) {
+                    case FIJO_MENSUAL: return "Fijo Mensual";
+                    case POR_HORA: return "Por Hora";
+                    case POR_CURSO: return "Por Curso";
+                    case PORCENTAJE: return "Porcentaje";
+                    default: return tipo.name();
+                }
+            }
+
+            @Override
+            public TipoPagoProfesor fromString(String string) {
+                if (string == null || string.isEmpty()) return null;
+                switch (string) {
+                    case "Fijo Mensual": return TipoPagoProfesor.FIJO_MENSUAL;
+                    case "Por Hora": return TipoPagoProfesor.POR_HORA;
+                    case "Por Curso": return TipoPagoProfesor.POR_CURSO;
+                    case "Porcentaje": return TipoPagoProfesor.PORCENTAJE;
+                    default: return null;
+                }
+            }
+        });
+
+        // Configurar tamaño para que se vea como campo normal
+        tipoPagoCombo.setMinWidth(250);
+        tipoPagoCombo.setPrefWidth(250);
+
         TextField tarifaHoraField = new TextField(base.getTarifaHora() != null ? base.getTarifaHora().toPlainString() : "");
         TextField salarioMensualField = new TextField(base.getSalarioMensual() != null ? base.getSalarioMensual().toPlainString() : "");
         TextField tarifaPorCursoField = new TextField(base.getTarifaPorCurso() != null ? base.getTarifaPorCurso().toPlainString() : "");
@@ -250,54 +282,49 @@ public class MaestroController {
         grid.add(new Label("Tipo pago*"), 0, 7);
         grid.add(tipoPagoCombo, 1, 7);
 
-        Label tarifaHoraLabel = new Label("Tarifa por hora");
-        Label salarioMensualLabel = new Label("Salario mensual");
-        Label tarifaPorCursoLabel = new Label("Tarifa por curso");
-        Label porcentajeLabel = new Label("Porcentaje");
+         // Etiquetas para campos de pago
+         Label tarifaHoraLabel = new Label("Tarifa por hora");
+         Label salarioMensualLabel = new Label("Salario mensual");
+         Label tarifaPorCursoLabel = new Label("Tarifa por curso");
+         Label porcentajeLabel = new Label("Porcentaje");
 
-        grid.add(tarifaHoraLabel, 0, 8);
-        grid.add(tarifaHoraField, 1, 8);
-        grid.add(salarioMensualLabel, 0, 9);
-        grid.add(salarioMensualField, 1, 9);
-        grid.add(tarifaPorCursoLabel, 0, 10);
-        grid.add(tarifaPorCursoField, 1, 10);
-        grid.add(porcentajeLabel, 0, 11);
-        grid.add(porcentajeField, 1, 11);
+         // Todas las modalidades comparten la misma fila visual.
+         // Solo una pareja label+field queda visible según el tipo seleccionado.
+         grid.add(tarifaHoraLabel, 0, 8);
+         grid.add(tarifaHoraField, 1, 8);
+         grid.add(salarioMensualLabel, 0, 8);
+         grid.add(salarioMensualField, 1, 8);
+         grid.add(tarifaPorCursoLabel, 0, 8);
+         grid.add(tarifaPorCursoField, 1, 8);
+         grid.add(porcentajeLabel, 0, 8);
+         grid.add(porcentajeField, 1, 8);
+
+         // Hacer referencias para toggle visibility
+         Label[] paymentLabels = {tarifaHoraLabel, salarioMensualLabel, tarifaPorCursoLabel, porcentajeLabel};
+         TextField[] paymentFields = {tarifaHoraField, salarioMensualField, tarifaPorCursoField, porcentajeField};
 
         Label ayudaPagoLabel = new Label("Seleccione el tipo de pago para mostrar el campo correspondiente.");
         ayudaPagoLabel.setWrapText(true);
-        grid.add(ayudaPagoLabel, 0, 12, 2, 1);
+        grid.add(ayudaPagoLabel, 0, 9, 2, 1);
 
         Label errorFormularioLabel = new Label();
         errorFormularioLabel.setWrapText(true);
         errorFormularioLabel.setStyle("-fx-text-fill: #d32f2f;");
-        grid.add(errorFormularioLabel, 0, 13, 2, 1);
+        grid.add(errorFormularioLabel, 0, 10, 2, 1);
 
-        tipoPagoCombo.valueProperty().addListener((obs, oldVal, newVal) ->
-                actualizarCamposPago(
-                        newVal,
-                        tarifaHoraLabel,
-                        tarifaHoraField,
-                        salarioMensualLabel,
-                        salarioMensualField,
-                        tarifaPorCursoLabel,
-                        tarifaPorCursoField,
-                        porcentajeLabel,
-                        porcentajeField,
-                        ayudaPagoLabel
-                ));
-        actualizarCamposPago(
-                tipoPagoCombo.getValue(),
-                tarifaHoraLabel,
-                tarifaHoraField,
-                salarioMensualLabel,
-                salarioMensualField,
-                tarifaPorCursoLabel,
-                tarifaPorCursoField,
-                porcentajeLabel,
-                porcentajeField,
-                ayudaPagoLabel
-        );
+         tipoPagoCombo.valueProperty().addListener((obs, oldVal, newVal) ->
+                 actualizarCamposPago(
+                         newVal,
+                         paymentLabels,
+                         paymentFields,
+                         ayudaPagoLabel
+                 ));
+         actualizarCamposPago(
+                 tipoPagoCombo.getValue(),
+                 paymentLabels,
+                 paymentFields,
+                 ayudaPagoLabel
+         );
 
         dialog.getDialogPane().setContent(grid);
 
@@ -489,51 +516,59 @@ public class MaestroController {
         return null;
     }
 
-    private void actualizarCamposPago(TipoPagoProfesor tipoPago,
-                                      Label tarifaHoraLabel,
-                                      TextField tarifaHoraField,
-                                      Label salarioMensualLabel,
-                                      TextField salarioMensualField,
-                                      Label tarifaPorCursoLabel,
-                                      TextField tarifaPorCursoField,
-                                      Label porcentajeLabel,
-                                      TextField porcentajeField,
-                                      Label ayudaPagoLabel) {
-        boolean esPorHora = tipoPago == TipoPagoProfesor.POR_HORA;
-        boolean esFijo = tipoPago == TipoPagoProfesor.FIJO_MENSUAL;
-        boolean esPorCurso = tipoPago == TipoPagoProfesor.POR_CURSO;
-        boolean esPorcentaje = tipoPago == TipoPagoProfesor.PORCENTAJE;
+     private void actualizarCamposPago(TipoPagoProfesor tipoPago,
+                                       Label[] paymentLabels,
+                                       TextField[] paymentFields,
+                                       Label ayudaPagoLabel) {
+         boolean esPorHora = tipoPago == TipoPagoProfesor.POR_HORA;
+         boolean esFijo = tipoPago == TipoPagoProfesor.FIJO_MENSUAL;
+         boolean esPorCurso = tipoPago == TipoPagoProfesor.POR_CURSO;
+         boolean esPorcentaje = tipoPago == TipoPagoProfesor.PORCENTAJE;
 
-        togglePagoField(tarifaHoraLabel, tarifaHoraField, esPorHora);
-        togglePagoField(salarioMensualLabel, salarioMensualField, esFijo);
-        togglePagoField(tarifaPorCursoLabel, tarifaPorCursoField, esPorCurso);
-        togglePagoField(porcentajeLabel, porcentajeField, esPorcentaje);
+         // Mostrar/ocultar según tipo de pago
+         paymentLabels[0].setVisible(esPorHora);
+         paymentLabels[0].setManaged(esPorHora);
+         paymentFields[0].setVisible(esPorHora);
+         paymentFields[0].setManaged(esPorHora);
+         paymentFields[0].setDisable(!esPorHora);
 
-        if (!esPorHora) {
-            tarifaHoraField.clear();
-        }
-        if (!esFijo) {
-            salarioMensualField.clear();
-        }
-        if (!esPorCurso) {
-            tarifaPorCursoField.clear();
-        }
-        if (!esPorcentaje) {
-            porcentajeField.clear();
-        }
+         paymentLabels[1].setVisible(esFijo);
+         paymentLabels[1].setManaged(esFijo);
+         paymentFields[1].setVisible(esFijo);
+         paymentFields[1].setManaged(esFijo);
+         paymentFields[1].setDisable(!esFijo);
 
-        ayudaPagoLabel.setText(tipoPago == null
-                ? "Seleccione el tipo de pago para mostrar el campo correspondiente."
-                : "Ingrese solo el valor de " + tipoPago.name() + ".");
-    }
+         paymentLabels[2].setVisible(esPorCurso);
+         paymentLabels[2].setManaged(esPorCurso);
+         paymentFields[2].setVisible(esPorCurso);
+         paymentFields[2].setManaged(esPorCurso);
+         paymentFields[2].setDisable(!esPorCurso);
 
-    private void togglePagoField(Label label, TextField field, boolean visible) {
-        label.setVisible(visible);
-        label.setManaged(visible);
-        field.setVisible(visible);
-        field.setManaged(visible);
-        field.setDisable(!visible);
-    }
+         paymentLabels[3].setVisible(esPorcentaje);
+         paymentLabels[3].setManaged(esPorcentaje);
+         paymentFields[3].setVisible(esPorcentaje);
+         paymentFields[3].setManaged(esPorcentaje);
+         paymentFields[3].setDisable(!esPorcentaje);
+
+         // Limpiar campos no utilizados
+         if (!esPorHora) {
+             paymentFields[0].clear();
+         }
+         if (!esFijo) {
+             paymentFields[1].clear();
+         }
+         if (!esPorCurso) {
+             paymentFields[2].clear();
+         }
+         if (!esPorcentaje) {
+             paymentFields[3].clear();
+         }
+
+         ayudaPagoLabel.setText(tipoPago == null
+                 ? "Seleccione el tipo de pago para mostrar el campo correspondiente."
+                 : "Ingrese solo el valor de " + tipoPago.name() + ".");
+     }
+
 
     private String requerido(String valor, String mensaje) {
         if (valor == null || valor.isBlank()) {
