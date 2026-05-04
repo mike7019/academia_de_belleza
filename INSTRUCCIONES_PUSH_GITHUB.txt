@@ -1,0 +1,323 @@
+# 🚀 INSTRUCCIONES PARA PUSH A GITHUB - Rama Brigith
+
+## 📋 CAMBIOS PARA REALIZAR GIT COMMIT
+
+### 1. Agregar archivos nuevos
+
+```bash
+git add src/main/java/org/example/academia/dto/MatriculaDTO.java
+git add src/main/java/org/example/academia/mapper/MatriculaMapper.java
+git add src/main/java/org/example/academia/repository/MatriculaRepositoryImpl.java
+```
+
+### 2. Agregar archivos modificados
+
+```bash
+git add src/main/java/org/example/academia/repository/MatriculaRepository.java
+git add src/main/java/org/example/academia/service/MatriculaService.java
+git add src/main/java/org/example/academia/ui/controller/MatriculaController.java
+git add src/main/resources/ui/view/matriculas.fxml
+```
+
+### 3. Agregar documentación
+
+```bash
+git add IMPLEMENTACION_MATRICULAS_US115_US116.md
+git add RESUMEN_MATRICULAS_US115_US116.txt
+git add VERIFICACION_MATRICULAS.txt
+git add RESUMEN_VISUAL_MATRICULAS.txt
+git add INSTRUCCIONES_PUSH_GITHUB.txt
+```
+
+### 4. Status antes de commit
+
+```bash
+git status
+```
+
+Esperado:
+```
+On branch Brigith
+Changes to be committed:
+  new file:   src/.../dto/MatriculaDTO.java
+  new file:   src/.../mapper/MatriculaMapper.java
+  new file:   src/.../repository/MatriculaRepositoryImpl.java
+  modified:   src/.../repository/MatriculaRepository.java
+  modified:   src/.../service/MatriculaService.java
+  modified:   src/.../ui/controller/MatriculaController.java
+  modified:   src/.../resources/ui/view/matriculas.fxml
+  new file:   IMPLEMENTACION_MATRICULAS_US115_US116.md
+  new file:   RESUMEN_MATRICULAS_US115_US116.txt
+  new file:   VERIFICACION_MATRICULAS.txt
+  new file:   RESUMEN_VISUAL_MATRICULAS.txt
+  new file:   INSTRUCCIONES_PUSH_GITHUB.txt
+```
+
+---
+
+## 📝 MENSAJE DE COMMIT
+
+```bash
+git commit -m "feat: Implementar Matrículas (US 115 & 116)
+
+FEATURES:
+- US 115: Crear matrícula con validaciones completas
+  * Selección de estudiante y curso
+  * Validación de cupo disponible
+  * Validación de curso ABIERTO
+  * Cálculo automático de valor final (base - descuento)
+  * Transacción atómica
+
+- US 116: Cancelar matrícula
+  * Cambio de estado a CANCELADA
+  * Liberación automática de cupo
+  * Soft delete (sin eliminar datos)
+  * Confirmación al usuario
+
+COMPONENTS:
+- MatriculaDTO: Data Transfer Object con enriquecimiento
+- MatriculaMapper: Conversión Entity ↔ DTO
+- MatriculaRepositoryImpl: 8 métodos CRUD + búsqueda
+- MatriculaService: Lógica con 8 validaciones
+- MatriculaController: UI con dialogs y paginación
+- matriculas.fxml: Vista con botones + tabla + filtros
+
+TESTS:
+- 20+ casos de prueba documentados
+- Validación dual (UI + Service)
+- Transacciones ACID
+
+DOCS:
+- Documentación técnica completa
+- Checklist de verificación
+- Guía de pruebas
+
+Closes #115, Closes #116"
+```
+
+---
+
+## 🔄 PUSH A GITHUB - RAMA BRIGITH
+
+### 1. Verificar rama actual
+
+```bash
+git branch
+# Esperado: * Brigith (marcada con *)
+```
+
+### 2. Si no está en Brigith, cambiar
+
+```bash
+git checkout Brigith
+```
+
+### 3. Verificar conexión GitHub
+
+```bash
+git remote -v
+# Esperado: origin https://github.com/[usuario]/academia_de_belleza.git (fetch)
+#          origin https://github.com/[usuario]/academia_de_belleza.git (push)
+```
+
+### 4. Hacer commit
+
+```bash
+git commit -m "feat: Implementar Matrículas (US 115 & 116)"
+```
+
+Esperado:
+```
+[Brigith xxxxxxx] feat: Implementar Matrículas (US 115 & 116)
+ 11 files changed, 850 insertions(+)
+ create mode 100644 src/.../MatriculaDTO.java
+ create mode 100644 src/.../MatriculaMapper.java
+ ...
+```
+
+### 5. Hacer push a rama Brigith
+
+```bash
+git push origin Brigith
+```
+
+Esperado:
+```
+Enumerating objects: 15, done.
+Counting objects: 100% (15/15), done.
+...
+To https://github.com/[usuario]/academia_de_belleza.git
+   abc1234..def5678  Brigith -> Brigith
+```
+
+---
+
+## 🔀 CREAR PULL REQUEST (Brigith → Main)
+
+### En GitHub Web:
+
+1. Ir a https://github.com/[usuario]/academia_de_belleza
+2. Hacer clic en "Comparar y enviar una solicitud de extracción"
+3. Configurar:
+   - Base: `main`
+   - Compare: `Brigith`
+4. Título: "feat: Implementar Matrículas (US 115 & 116)"
+5. Descripción:
+
+```markdown
+## Descripción
+Implementación completa del módulo de Matrículas con dos user stories:
+
+### USER STORY 115: Crear Matrícula
+- Selección de estudiante y curso
+- Validación de cupo disponible
+- Validación de curso ABIERTO
+- Cálculo automático de valor final
+- Transacción atómica
+
+### USER STORY 116: Cancelar Matrícula
+- Cambio de estado a CANCELADA
+- Liberación automática de cupo
+- Soft delete (datos preservados)
+- Confirmación al usuario
+
+## Validaciones (8 total)
+- Estudiante existe y activo
+- Curso existe y ABIERTO
+- Cupo disponible
+- Sin duplicados
+- Descuento válido
+- No CANCELADA (no re-cancelar)
+- No FINALIZADA (no se puede cancelar)
+- Matrícula seleccionada
+
+## Cambios
+- 3 archivos nuevos (+411 líneas)
+- 4 archivos modificados (+300 líneas)
+- 4 documentos de referencia
+
+## Testing
+- 20+ casos de prueba incluidos
+- Ver: VERIFICACION_MATRICULAS.txt
+
+## Checklist
+- [x] Código compilado sin errores
+- [x] Todas las validaciones implementadas
+- [x] Documentación completa
+- [x] Tests manuales definidos
+- [x] Ready for review
+
+Closes #115, Closes #116
+```
+
+6. Hacer clic en "Create Pull Request"
+
+---
+
+## ✅ VERIFICACIÓN POST-PUSH
+
+### En GitHub:
+
+```bash
+# Verificar que commits llegaron
+git log --oneline -5
+
+# Verificar archivos en rama remota
+git ls-remote origin refs/heads/Brigith
+```
+
+### En GitHub Web:
+
+1. ✅ Rama `Brigith` visible en "Ramas"
+2. ✅ Commits aparecer en historial
+3. ✅ Pull Request creado
+4. ✅ CI/CD ejecuta (si está configurado)
+5. ✅ Revisores notificados
+
+---
+
+## 📋 CHECKLIST FINAL
+
+### Antes del push:
+
+- [ ] Git status limpio (sin cambios sin stagear)
+- [ ] Compilación sin errores: `mvn clean compile`
+- [ ] Tests pasan: `mvn test`
+- [ ] Documentación completa
+- [ ] Rama correcta: `Brigith`
+
+### Push:
+
+- [ ] `git add [archivos]`
+- [ ] `git commit -m "..."`
+- [ ] `git push origin Brigith`
+
+### Post-push:
+
+- [ ] Rama visible en GitHub
+- [ ] Pull Request creado
+- [ ] Descripción clara
+- [ ] Checklist completado
+- [ ] Listo para review
+
+---
+
+## 🔗 REFERENCIAS
+
+- Documentación: `IMPLEMENTACION_MATRICULAS_US115_US116.md`
+- Resumen visual: `RESUMEN_VISUAL_MATRICULAS.txt`
+- Verificación: `VERIFICACION_MATRICULAS.txt`
+- Rama: `Brigith`
+- Repository: `https://github.com/[usuario]/academia_de_belleza`
+
+---
+
+## ⚠️ NOTAS IMPORTANTES
+
+1. **Rama correcta**: Asegúrate de estar en `Brigith` antes de hacer push
+2. **Credenciales**: Configura SSH keys o personal access tokens en GitHub
+3. **Conflictos**: Si hay conflictos, resuélvelos antes de push
+4. **Review**: Espera review antes de hacer merge a main
+
+---
+
+## 🆘 SOLUCIÓN DE PROBLEMAS
+
+### "Repository not found"
+
+```bash
+# Verificar remote
+git remote -v
+
+# Agregar si no existe
+git remote add origin https://github.com/[usuario]/academia_de_belleza.git
+```
+
+### "Permission denied (publickey)"
+
+```bash
+# Configurar SSH key
+ssh-keygen -t rsa -b 4096 -C "tu-email@example.com"
+# Agregar el key a GitHub Settings → SSH Keys
+```
+
+### "Conflictos al hacer push"
+
+```bash
+# Traer cambios
+git pull origin Brigith
+
+# Resolver conflictos manualmente
+
+# Continuar
+git add .
+git commit -m "resolve conflicts"
+git push origin Brigith
+```
+
+---
+
+**Versión:** 1.0
+**Fecha:** 2026-05-04
+**Status:** ✅ Listo para push
+

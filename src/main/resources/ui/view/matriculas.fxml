@@ -1,14 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-           fx:id="contentPane"
-           fx:controller="org.example.academia.ui.controller.MatriculaController"
-           styleClass="content-pane"
-           alignment="CENTER"
-           prefWidth="Infinity" prefHeight="Infinity"
-           maxWidth="Infinity" maxHeight="Infinity">
-    <fx:include fx:id="moduleCard" source="components/module-card.fxml"/>
-</StackPane>
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.academia.ui.controller.MatriculaController">
+    <top>
+        <VBox spacing="10.0">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <Label text="Gestión de Matrículas" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+            <HBox spacing="10.0">
+                <Button text="Nueva Matrícula" onAction="#onNuevaMatricula" style="-fx-padding: 8px 16px;"/>
+                <Button text="Ver Detalles" onAction="#onVerDetalles" style="-fx-padding: 8px 16px;"/>
+                <Button text="Cancelar Matrícula" onAction="#onCancelarMatricula" style="-fx-padding: 8px 16px; -fx-text-fill: #d32f2f;"/>
+                <Button text="Refrescar" onAction="#onRefrescar" style="-fx-padding: 8px 16px;"/>
+            </HBox>
+            <HBox spacing="10.0" alignment="CENTER_LEFT">
+                <Label text="Estado:"/>
+                <ComboBox fx:id="filtroEstadoCombo" prefWidth="120"/>
+                <Label text="Estudiante:"/>
+                <ComboBox fx:id="filtroEstudianteCombo" prefWidth="150"/>
+                <Label text="Curso:"/>
+                <ComboBox fx:id="filtroCursoCombo" prefWidth="150"/>
+                <Button text="Limpiar" onAction="#onLimpiarFiltros"/>
+            </HBox>
+        </VBox>
+    </top>
+    <center>
+        <TableView fx:id="matriculasTable">
+            <columns>
+                <TableColumn fx:id="estudianteColumn" text="Estudiante" prefWidth="150"/>
+                <TableColumn fx:id="documentoColumn" text="Documento" prefWidth="120"/>
+                <TableColumn fx:id="cursoColumn" text="Curso" prefWidth="150"/>
+                <TableColumn fx:id="fechaColumn" text="Fecha" prefWidth="100"/>
+                <TableColumn fx:id="estadoColumn" text="Estado" prefWidth="100"/>
+                <TableColumn fx:id="valorBaseColumn" text="Valor Base" prefWidth="110"/>
+                <TableColumn fx:id="descuentoColumn" text="Descuento" prefWidth="110"/>
+                <TableColumn fx:id="valorFinalColumn" text="Valor Final" prefWidth="110"/>
+            </columns>
+        </TableView>
+    </center>
+    <bottom>
+        <HBox spacing="10.0" alignment="CENTER_RIGHT" style="-fx-padding: 8 10 8 10;">
+            <Label fx:id="resumenPaginaLabel" text="Mostrando 0 de 0"/>
+            <Pagination fx:id="paginacionMatriculas" maxPageIndicatorCount="7"/>
+        </HBox>
+    </bottom>
+</BorderPane>
+
 

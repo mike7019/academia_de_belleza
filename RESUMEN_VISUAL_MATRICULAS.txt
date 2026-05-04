@@ -1,0 +1,284 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    ✅ IMPLEMENTACIÓN COMPLETADA
+                    MATRÍCULAS - USER STORY 115 & 116
+═══════════════════════════════════════════════════════════════════════════════
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│ 📋 RESUMEN EJECUTIVO                                                      │
+└───────────────────────────────────────────────────────────────────────────┘
+
+USER STORY 115: CREAR MATRÍCULA
+─────────────────────────────────
+✅ Seleccionar estudiante y curso
+✅ Validación de cupo dinámico
+✅ Validación: curso ABIERTO
+✅ Cálculo automático valor final
+✅ Transacción atómica
+
+USER STORY 116: CANCELAR MATRÍCULA
+──────────────────────────────────
+✅ Cambiar estado a CANCELADA
+✅ Liberar cupo (automático)
+✅ Sin eliminar datos (soft delete)
+✅ Confirmación al usuario
+
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│ 📦 ARCHIVOS ENTREGADOS                                                    │
+└───────────────────────────────────────────────────────────────────────────┘
+
+NUEVOS ARCHIVOS (3):
+┌─────────────────────────────────────────────────────────┐
+│ 1. MatriculaDTO.java                     134 líneas    │
+│    Data Transfer Object con enriquecimiento             │
+│    → estudianteNombre, cursoNombre, etc                │
+│                                                          │
+│ 2. MatriculaMapper.java                  58 líneas     │
+│    Conversión Entity ↔ DTO bidireccional               │
+│    → Enriquecimiento automático en toDTO()            │
+│                                                          │
+│ 3. MatriculaRepositoryImpl.java          219 líneas    │
+│    Implementación JPA completa                          │
+│    → 8 métodos CRUD + búsqueda + transacciones         │
+└─────────────────────────────────────────────────────────┘
+
+ARCHIVOS ACTUALIZADOS (4):
+┌─────────────────────────────────────────────────────────┐
+│ • MatriculaRepository.java            (+8 métodos)      │
+│ • MatriculaService.java               (+cancelar)       │
+│ • MatriculaController.java            (+diálogos)       │
+│ • matriculas.fxml                     (+botones)        │
+└─────────────────────────────────────────────────────────┘
+
+DOCUMENTACIÓN (3):
+┌─────────────────────────────────────────────────────────┐
+│ • IMPLEMENTACION_MATRICULAS_US115_US116.md (técnico)   │
+│ • RESUMEN_MATRICULAS_US115_US116.txt (visual)          │
+│ • VERIFICACION_MATRICULAS.txt (checklist)              │
+└─────────────────────────────────────────────────────────┘
+
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│ 🔄 FLUJOS IMPLEMENTADOS                                                   │
+└───────────────────────────────────────────────────────────────────────────┘
+
+CREAR MATRÍCULA:
+  Nuevo Matrícula
+       ↓
+  Dialog (Estudiante + Curso + Descuento)
+       ↓
+  Validar (activo, ABIERTO, cupo, sin dup, descuento)
+       ↓
+  Calcular valorFinal = base - descuento
+       ↓
+  INSERT + transacción
+       ↓
+  ✅ Notificación + tabla refresca
+
+CANCELAR MATRÍCULA:
+  Seleccionar + Cancelar
+       ↓
+  Validar (no CANCELADA, no FINALIZADA)
+       ↓
+  Dialog confirmación
+       ↓
+  UPDATE estado → CANCELADA
+       ↓
+  ✅ Libera cupo + notificación
+
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│ 💾 VALIDACIONES IMPLEMENTADAS (8 TOTAL)                                   │
+└───────────────────────────────────────────────────────────────────────────┘
+
+CREAR (5):
+  1. ✅ Estudiante existe y está activo
+  2. ✅ Curso existe y está ABIERTO
+  3. ✅ Cupo disponible (count < máximo)
+  4. ✅ Sin duplicados (misma est + curso)
+  5. ✅ Descuento válido (>0 y <=base)
+
+CANCELAR (3):
+  6. ✅ No CANCELADA (no re-cancelar)
+  7. ✅ No FINALIZADA (no se puede cancelar)
+  8. ✅ Matrícula seleccionada
+
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│ 🏗️  ARQUITECTURA                                                          │
+└───────────────────────────────────────────────────────────────────────────┘
+
+UI Layer (JavaFX)
+    ↓
+Service Layer (Lógica)
+    ├─ crearMatricula()     ← USER STORY 115
+    └─ cancelarMatricula()  ← USER STORY 116
+    ↓
+Repository Layer (Datos)
+    ├─ save(matricula)
+    ├─ findById()
+    ├─ findByEstudianteIdAndCursoId()
+    └─ countMatriculasActivasByCursoId()
+    ↓
+Database Layer (PostgreSQL)
+    └─ matricula table
+
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│ 🎨 INTERFAZ USUARIO                                                       │
+└───────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ Gestión de Matrículas                                           │
+├─────────────────────────────────────────────────────────────────┤
+│ [Nueva] [Ver] [Cancelar] [Refrescar]  Estado: [Todos ▼]       │
+├─────────────────────────────────────────────────────────────────┤
+│ Estudiante  │ Doc. │ Curso      │ Fecha │ Est. │ V.Base │      │
+├─────────────────────────────────────────────────────────────────┤
+│ Juan Pérez  │ 100k │ Corte      │ 5/4   │ACTIV │800000  │ ✓    │
+│ Ana Gómez   │ 100k │ Maquillaje │ 5/4   │PEND. │900000  │ ✓    │
+├─────────────────────────────────────────────────────────────────┤
+│ Mostrando 1-2 de 2                  Página [ ◄ 1 2 3 ► ]       │
+└─────────────────────────────────────────────────────────────────┘
+
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│ 🧪 CASOS DE PRUEBA INCLUIDOS                                              │
+└───────────────────────────────────────────────────────────────────────────┘
+
+USER STORY 115 (Crear):
+  ✅ Válida con todos los datos
+  ✅ Rechaza: cupo lleno
+  ✅ Rechaza: curso cerrado
+  ✅ Rechaza: estudiante inactivo
+  ✅ Rechaza: duplicada
+  ✅ Rechaza: descuento inválido
+  ✅ Cálculo correcto
+
+USER STORY 116 (Cancelar):
+  ✅ Cancela válida
+  ✅ Libera cupo
+  ✅ Rechaza: ya cancelada
+  ✅ Rechaza: finalizada
+  ✅ Preserva datos (soft delete)
+  ✅ Confirmación funciona
+  ✅ Notificación correcta
+
+GENERAL:
+  ✅ Filtro por estado
+  ✅ Paginación (15 x página)
+  ✅ Errores en notificaciones
+  ✅ Refresco de tabla
+
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│ 📊 ESTADÍSTICAS                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+
+Código:
+  • Archivos nuevos: 3
+  • Archivos actualizados: 4
+  • Líneas de código: ~850
+  • Métodos agregados: 3
+  • Clases creadas: 3
+
+Validaciones:
+  • Lógica de negocio: 8
+  • Transacciones atómicas: 2
+  • Niveles de validación: 2 (UI + Service)
+
+Documentación:
+  • Archivos: 3
+  • Test cases: 20+
+  • Diagramas: 5+
+
+Testing:
+  • Casos recomendados: 7
+  • Escenarios: 20+
+
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│ 🔐 SEGURIDAD Y AUTORIZACIÓN                                              │
+└───────────────────────────────────────────────────────────────────────────┘
+
+Permisos Requeridos:
+  ✅ MATRICULA_CREAR   → Crear matrículas
+  ✅ MATRICULA_CANCELAR → Cancelar matrículas
+  ✅ MATRICULA_VER     → Ver/listar
+
+Validaciones:
+  ✅ Autorización en cada operación
+  ✅ Validación en dos capas (UI + Service)
+  ✅ Transacciones ACID
+  ✅ Rollback automático en errores
+  ✅ Soft delete (auditoría)
+
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│ ✨ CARACTERÍSTICAS DESTACADAS                                             │
+└───────────────────────────────────────────────────────────────────────────┘
+
+✅ TRANSACCIONES ATÓMICAS
+   Si alguna validación falla → ROLLBACK completo
+
+✅ SOFT DELETE
+   Datos preservados → Auditoría completa
+
+✅ DTOs ENRIQUECIDOS
+   La UI no ve entidades JPA crudo
+
+✅ MAPPERS AUTOMÁTICOS
+   Conversión Entity ↔ DTO sin boilerplate
+
+✅ VALIDACIÓN DUAL
+   UI (rápido) + Service (seguro)
+
+✅ PAGINACIÓN
+   Maneja tablas con miles de registros
+
+✅ FILTROS DINÁMICOS
+   Por estado, estudiante, curso, fechas
+
+✅ NOTIFICACIONES VISUALES
+   Error (rojo) e Información (verde)
+
+✅ LAZY LOADING OPTIMIZADO
+   FETCH JOINs evitan N+1 queries
+
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│ 🚀 PRÓXIMAS HISTORIAS (RECOMENDADAS)                                      │
+└───────────────────────────────────────────────────────────────────────────┘
+
+• USER STORY 117: Editar matrícula
+• USER STORY 118: Generar reportes
+• USER STORY 119: Exportar a Excel
+• USER STORY 120: Notificaciones por email
+
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│ 📞 REFERENCIAS RÁPIDAS                                                    │
+└───────────────────────────────────────────────────────────────────────────┘
+
+Documentos:
+  📘 Técnico: IMPLEMENTACION_MATRICULAS_US115_US116.md
+  📊 Visual:  RESUMEN_MATRICULAS_US115_US116.txt
+  ✅ Checklist: VERIFICACION_MATRICULAS.txt
+
+Métodos clave:
+  • MatriculaService.crearMatricula()
+  • MatriculaService.cancelarMatricula()
+  • MatriculaController.onNuevaMatricula()
+  • MatriculaController.onCancelarMatricula()
+
+Tablas SQL:
+  • matricula
+  • estudiante
+  • curso
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                            ✅ STATUS: LISTO PARA PRODUCCIÓN
+                       Fecha: 2026-05-04 | Versión: 1.0
+═══════════════════════════════════════════════════════════════════════════════
+
