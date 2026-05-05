@@ -1,0 +1,267 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    ✅ USER STORY 117 - CONSULTAR MATRÍCULAS
+═══════════════════════════════════════════════════════════════════════════════
+
+📋 DESCRIPCIÓN
+──────────────
+Como usuario, quiero visualizar y filtrar matrículas para consultar información
+de inscripciones.
+
+✅ CRITERIOS CUMPLIDOS
+────────────────────────
+✅ Se listan todas las matrículas
+✅ Filtros por ESTADO (Todos, PENDIENTE, ACTIVA, CANCELADA, FINALIZADA)
+✅ Filtros por ESTUDIANTE (Todos + estudiantes activos)
+✅ Filtros por CURSO (Todos + todos los cursos)
+✅ Se muestra ESTADO de cada matrícula
+✅ Se muestra VALORES (base, descuento, final)
+✅ Se muestra ESTUDIANTE (nombre, documento)
+✅ Se muestra CURSO (nombre)
+
+
+🎨 INTERFAZ ACTUALIZADA
+────────────────────────
+
+ANTES:
+┌──────────────────────────────────┐
+│ [Nueva] [Ver] [Cancelar] [Refr] │
+│ Estado: [Todos ▼]                │
+└──────────────────────────────────┘
+
+AHORA:
+┌─────────────────────────────────────────────────────┐
+│ [Nueva] [Ver] [Cancelar] [Refrescar]               │
+│                                                     │
+│ Estado:      [Todos ▼]                             │
+│ Estudiante:  [Todos ▼]                             │
+│ Curso:       [Todos ▼]  [Limpiar]                  │
+│                                                     │
+│ TABLA (8 columnas):                                 │
+│ Estudiante | Documento | Curso | Fecha | Estado... │
+└─────────────────────────────────────────────────────┘
+
+
+🔄 CAMBIOS EN CÓDIGO
+─────────────────────
+
+ARCHIVO: MatriculaController.java
+
+Nuevos campos @FXML:
+  • @FXML private ComboBox<EstudianteDTO> filtroEstudianteCombo;
+  • @FXML private ComboBox<CursoDTO> filtroCursoCombo;
+
+Nuevos métodos:
+  • onLimpiarFiltros()            → Botón "Limpiar"
+  • cargarCombosDeEstudiantes()   → Cargar estudiantes activos
+  • cargarCombosDeCursos()        → Cargar todos los cursos
+
+Métodos actualizados:
+  • initialize()         → Ahora carga los combos de filtros
+  • cargarMatriculas()   → Ahora obtiene y aplica 3 filtros
+
+ARCHIVO: matriculas.fxml
+
+Nuevo bloque de filtros (reemplazó filtro simple por triple):
+  <HBox spacing="10.0" alignment="CENTER_LEFT">
+      <Label text="Estado:"/>
+      <ComboBox fx:id="filtroEstadoCombo" prefWidth="120"/>
+      <Label text="Estudiante:"/>
+      <ComboBox fx:id="filtroEstudianteCombo" prefWidth="150"/>
+      <Label text="Curso:"/>
+      <ComboBox fx:id="filtroCursoCombo" prefWidth="150"/>
+      <Button text="Limpiar" onAction="#onLimpiarFiltros"/>
+  </HBox>
+
+
+📊 TABLA DE MATRÍCULAS MOSTRANDO
+────────────────────────────────
+
+┌──────────────┬─────────┬──────────────────┬──────────┬────────┐
+│ Estudiante   │ Docum.. │ Curso            │ Fecha    │ Estado │
+├──────────────┼─────────┼──────────────────┼──────────┼────────┤
+│ Juan Pérez   │ 100000  │ Corte Básico     │ 5/4/2026 │ ACTIVA │
+│ Ana Gómez    │ 100000  │ Maquillaje Prof. │ 5/4/2026 │ PEND.. │
+│ Juan Pérez   │ 100000  │ Maquillaje Prof. │ 5/3/2026 │ CANCEL │
+└──────────────┴─────────┴──────────────────┴──────────┴────────┘
+
+┌──────────────┬──────────┬───────────┬──────────┐
+│ V.Base       │ Descuent │ V.Final   │ Selector │
+├──────────────┼──────────┼───────────┼──────────┤
+│ 800000.00    │ 100000   │ 700000.00 │ ☐        │
+│ 900000.00    │ 0.00     │ 900000.00 │ ☐        │
+│ 900000.00    │ 0.00     │ 900000.00 │ ☐        │
+└──────────────┴──────────┴───────────┴──────────┘
+
+
+💾 FLUJOS DE FILTRO
+──────────────────
+
+FLUJO 1: Ver todas las matrículas
+  Estado: Todos ▼
+  Estudiante: Todos ▼
+  Curso: Todos ▼
+  → Tabla muestra TODAS las matrículas (15 x página)
+
+FLUJO 2: Filtrar por estudiante
+  Estado: Todos ▼
+  Estudiante: [Juan Pérez ▼]
+  Curso: Todos ▼
+  → Tabla: solo matrículas de Juan (ACTIVA + CANCELADA + etc)
+
+FLUJO 3: Filtrar por curso
+  Estado: Todos ▼
+  Estudiante: Todos ▼
+  Curso: [Corte Básico ▼]
+  → Tabla: solo matrículas del curso (todos los estudiantes)
+
+FLUJO 4: Filtrar por estado
+  Estado: [ACTIVA ▼]
+  Estudiante: Todos ▼
+  Curso: Todos ▼
+  → Tabla: solo matrículas ACTIVA (todos los estudiantes + cursos)
+
+FLUJO 5: Combinación
+  Estado: [ACTIVA ▼]
+  Estudiante: [Juan Pérez ▼]
+  Curso: [Corte Básico ▼]
+  → Tabla: SOLO matrículas de Juan ACTIVA en Corte Básico
+
+FLUJO 6: Limpiar
+  [Limpiar]
+  → Todos vuelven a "Todos"
+  → Tabla refresca con todas
+
+
+🎯 CASOS DE PRUEBA
+───────────────────
+
+✅ Test 1: Cargar tabla inicial
+   Resultado: Todas las matrículas se cargan (máx 15 x página)
+
+✅ Test 2: Filtro ESTADO
+   Seleccionar ACTIVA → Solo matrículas con estado ACTIVA
+
+✅ Test 3: Filtro ESTUDIANTE
+   Seleccionar "Juan" → Solo matrículas de Juan (todos los cursos)
+
+✅ Test 4: Filtro CURSO
+   Seleccionar "Corte" → Solo matrículas de Corte (todos los alumnos)
+
+✅ Test 5: Filtro COMBINADO
+   Est.=Juan, Curso=Corte, Estado=ACTIVA
+   → Intersección exacta
+
+✅ Test 6: Limpiar filtros
+   [Limpiar] → Todos vuelven a "Todos"
+
+✅ Test 7: Paginación
+   45 matrículas = 3 páginas de 15 cada una
+
+✅ Test 8: Valores correctos
+   Valor Final = Valor Base - Descuento (BigDecimal)
+
+✅ Test 9: Información enriquecida
+   Estudiante: nombre (NO ID)
+   Curso: nombre (NO ID)
+   Documento: número del estudiante
+
+✅ Test 10: Combos dinámicos
+   Estudiante combo = solo activos
+   Curso combo = todos los cursos
+
+
+🔐 SEGURIDAD & PERMISOS
+────────────────────────
+
+Permiso requerido: MATRICULA_VER
+  • Si usuario no tiene permiso → AuthException
+  • Sin error crítico, solo mensaje
+
+Validaciones:
+  • Autorización en MatriculaService.listarMatriculas()
+  • Filtros no bypassed
+  • Datos del usuario preservados
+
+
+📈 INTEGRACIONES
+─────────────────
+
+US 115 (Crear):
+  • Matrícula creada → Aparece inmediatamente en tabla
+  • Refleja estado PENDIENTE
+
+US 116 (Cancelar):
+  • Matrícula cancelada → Estado cambia a CANCELADA
+  • Cupo liberado automáticamente
+
+US 117 (Consultar):
+  ← ESTÁ AQUÍ - Filtros y visualización
+
+Futuro (US 118):
+  • Reportes usarán estos datos filtrados
+  • Exportar a Excel desde aquí
+
+
+✨ CARACTERÍSTICAS TÉCNICAS
+─────────────────────────────
+
+✅ Filtros reactivos (sin lag)
+   • Listeners en cada combo
+   • cargarMatriculas(0) dispara automáticamente
+
+✅ Combos inteligentes
+   • Option "Todos" = null en combo
+   • StringConverter: muestra nombre (no ID)
+
+✅ Paginación eficiente
+   • 15 registros por página
+   • Navegación con botones numerados
+
+✅ Visualización clara
+   • 8 columnas con información relevante
+   • Valores en formato moneda (12,2 decimales)
+
+✅ Manejo de errores
+   • Validación: Permiso en service
+   • UI: Notificaciones visuales
+
+
+📝 DATOS MOSTRADOS EN TABLA
+─────────────────────────────
+
+Columna              | Origen DTO           | Tipo
+─────────────────────┼──────────────────────┼──────────────────
+Estudiante           | estudianteNombre     | String (nombre)
+Documento            | estudianteDocumento  | String (CC/CE/TI)
+Curso                | cursoNombre          | String (nombre)
+Fecha                | fecha                | LocalDate
+Estado               | estado               | EstadoMatricula
+Valor Base           | valorBase            | BigDecimal
+Descuento            | descuento            | BigDecimal
+Valor Final          | valorFinal           | BigDecimal
+
+
+🎓 APRENDIZAJES
+────────────────
+
+Esta US implementa:
+  • Filtros múltiples dinámicos
+  • Combos con null = opción "todos"
+  • Integración UI ↔ Service
+  • Visualización de enriquecimiento DTO
+  • Paginación con filtros
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+                            ✅ STATUS: IMPLEMENTADO
+
+                    Archivos: 2 (Controller + FXML)
+                    Métodos: 3 (+initialize actualizado)
+                    Líneas: ~100 (Controller) + ~15 (FXML)
+                    Test Cases: 10+
+
+                   Documentación: IMPLEMENTACION_US117_CONSULTAR_MATRICULAS.md
+
+═══════════════════════════════════════════════════════════════════════════════
+

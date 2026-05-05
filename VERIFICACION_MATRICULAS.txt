@@ -1,0 +1,451 @@
+# 🔍 GUÍA DE VERIFICACIÓN - MATRÍCULAS (US 115 & 116)
+
+## ✅ CHECKLIST DE IMPLEMENTACIÓN
+
+### Archivos Creados
+- [ ] `src/main/java/org/example/academia/dto/MatriculaDTO.java` (134 líneas)
+- [ ] `src/main/java/org/example/academia/mapper/MatriculaMapper.java` (58 líneas)
+- [ ] `src/main/java/org/example/academia/repository/MatriculaRepositoryImpl.java` (219 líneas)
+
+### Archivos Actualizados
+- [ ] `src/main/java/org/example/academia/repository/MatriculaRepository.java` (interfaz)
+- [ ] `src/main/java/org/example/academia/service/MatriculaService.java` (+cancelarMatricula)
+- [ ] `src/main/java/org/example/academia/ui/controller/MatriculaController.java` (+onCancelarMatricula)
+- [ ] `src/main/resources/ui/view/matriculas.fxml` (+botón cancelar)
+
+### Documentación
+- [ ] `IMPLEMENTACION_MATRICULAS_US115_US116.md` (técnico)
+- [ ] `RESUMEN_MATRICULAS_US115_US116.txt` (ejecutivo)
+- [ ] `VERIFICACION_MATRICULAS.txt` (este archivo)
+
+---
+
+## 🏗️ VALIDACIONES DE ARQUITECTURA
+
+### Service Layer - MatriculaService.java
+
+**Método: crearMatricula()**
+```java
+public MatriculaDTO crearMatricula(Long estudianteId, Long cursoId, BigDecimal descuento, String observaciones)
+```
+
+Validaciones implementadas:
+- [ ] ✅ authorizationService.requirePermission("MATRICULA_CREAR")
+- [ ] ✅ Validar estudianteId != null
+- [ ] ✅ Validar cursoId != null
+- [ ] ✅ estudianteRepository.findById() → validar existe
+- [ ] ✅ Validar estudiante.isActivo()
+- [ ] ✅ cursoRepository.findById() → validar existe
+- [ ] ✅ Validar curso.getEstado() == EstadoCurso.ABIERTO
+- [ ] ✅ matriculaRepository.findByEstudianteIdAndCursoId() → no duplicados
+- [ ] ✅ matriculaRepository.countMatriculasActivasByCursoId() → cupo disponible
+- [ ] ✅ BigDecimal descuentoFinal >= 0
+- [ ] ✅ BigDecimal descuentoFinal <= valorBase
+- [ ] ✅ BigDecimal valorFinal = valorBase - descuentoFinal
+- [ ] ✅ matriculaRepository.save() con transacción
+- [ ] ✅ Return MatriculaMapper.toDTO()
+
+**Método: cancelarMatricula()**
+```java
+public MatriculaDTO cancelarMatricula(Long matriculaId)
+```
+
+Validaciones implementadas:
+- [ ] ✅ authorizationService.requirePermission("MATRICULA_CANCELAR")
+- [ ] ✅ Validar matriculaId != null
+- [ ] ✅ matriculaRepository.findById() → obtener matrícula
+- [ ] ✅ Validar estado != CANCELADA (no re-cancelar)
+- [ ] ✅ Validar estado != FINALIZADA (no se puede cancelar finalizada)
+- [ ] ✅ matricula.setEstado(EstadoMatricula.CANCELADA)
+- [ ] ✅ matriculaRepository.save() con transacción
+- [ ] ✅ Return MatriculaMapper.toDTO()
+
+### Repository Layer - MatriculaRepositoryImpl.java
+
+**Métodos implementados:**
+- [ ] ✅ save(Matricula) - INSERT/UPDATE con transacción + rollback
+- [ ] ✅ findById(Long) - con FETCH JOIN (estudiante, curso)
+- [ ] ✅ findAll() - con FETCH JOINs ordenado DESC
+- [ ] ✅ findByEstudianteIdAndCursoId(Long, Long) - validar duplicados
+- [ ] ✅ findByEstudianteId(Long) - histórico estudiante
+- [ ] ✅ findByCursoId(Long) - matrículas de curso
+- [ ] ✅ countMatriculasActivasByCursoId(Long) - contar cupos ocupados
+- [ ] ✅ search(Long, Long, EstadoMatricula, LocalDate, LocalDate) - búsqueda con filtros
+
+Cada método:
+- [ ] ✅ Crea EntityManager de DatabaseConfig
+- [ ] ✅ Usa TypedQuery para type-safety
+- [ ] ✅ FETCH JOIN para evitar N+1 lazy loading
+- [ ] ✅ Transacción atómica (save)
+- [ ] ✅ Rollback en exception
+- [ ] ✅ Cierra EntityManager en finally
+
+### Controller Layer - MatriculaController.java
+
+**Métodos accionables:**
+- [ ] ✅ onNuevaMatricula() - abre dialog
+- [ ] ✅ onCancelarMatricula() - confirma y cancela [NEW]
+- [ ] ✅ onVerDetalles() - muestra detalles
+- [ ] ✅ onRefrescar() - recarga tabla
+
+**Diálogos:**
+- [ ] ✅ showMatriculaDialog() - crear (ComboBox est. + curso, TextField desc., etc.)
+- [ ] ✅ showDetallesDialog() - ver (readonly)
+- [ ] ✅ Confirmación integrada en onCancelarMatricula()
+
+**Paginación:**
+- [ ] ✅ PAGE_SIZE = 15
+- [ ] ✅ Pagination component vinculado
+- [ ] ✅ cargarMatriculas(int pageNumber)
+- [ ] ✅ actualizarPaginacion(int pagePreferida)
+- [ ] ✅ renderizarPagina(int pageIndex)
+
+**Filtros:**
+- [ ] ✅ ComboBox por Estado (Todos, PENDIENTE, ACTIVA, CANCELADA, FINALIZADA)
+- [ ] ✅ Listener en filtroEstadoCombo → recarga tabla
+
+**Notificaciones:**
+- [ ] ✅ showError(String) - rojo, 3 seg
+- [ ] ✅ showInfo(String) - verde, 3 seg
+- [ ] ✅ mostrarNotificacion(String, boolean)
+
+### UI Layer - matriculas.fxml
+
+**Estructura:**
+- [ ] ✅ BorderPane (top, center, bottom)
+- [ ] ✅ Top: VBox con botones + filtros
+  - [ ] Button "Nueva Matrícula" onAction="#onNuevaMatricula"
+  - [ ] Button "Ver Detalles" onAction="#onVerDetalles"
+  - [ ] Button "Cancelar Matrícula" onAction="#onCancelarMatricula" [NEW]
+  - [ ] Button "Refrescar" onAction="#onRefrescar"
+  - [ ] ComboBox fx:id="filtroEstadoCombo"
+- [ ] ✅ Center: TableView fx:id="matriculasTable"
+  - [ ] 8 TableColumns (estudiante, documento, curso, fecha, estado, valorBase, descuento, valorFinal)
+- [ ] ✅ Bottom: HBox con paginación
+  - [ ] Label resumenPaginaLabel
+  - [ ] Pagination paginacionMatriculas
+
+### Mappers - MatriculaMapper.java
+
+- [ ] ✅ toDTO(Matricula entity)
+  - [ ] Null check
+  - [ ] Mapea propiedades básicas
+  - [ ] Enriquece con estudianteNombre (nombre + apellido)
+  - [ ] Enriquece con estudianteDocumento
+  - [ ] Enriquece con cursoNombre
+  - [ ] Enriquece con precioCurso
+  - [ ] Return MatriculaDTO
+
+- [ ] ✅ toEntity(MatriculaDTO dto)
+  - [ ] Null check
+  - [ ] Mapea propiedades básicas
+  - [ ] Convierte descuento a ZERO si null
+  - [ ] Return Matricula
+
+### DTOs - MatriculaDTO.java
+
+**Propiedades:**
+- [ ] ✅ id: Long
+- [ ] ✅ fecha: LocalDate
+- [ ] ✅ estado: EstadoMatricula
+- [ ] ✅ valorBase: BigDecimal
+- [ ] ✅ descuento: BigDecimal
+- [ ] ✅ valorFinal: BigDecimal
+- [ ] ✅ observaciones: String
+- [ ] ✅ estudianteId: Long
+- [ ] ✅ estudianteNombre: String
+- [ ] ✅ estudianteDocumento: String
+- [ ] ✅ cursoId: Long
+- [ ] ✅ cursoNombre: String
+- [ ] ✅ precioCurso: BigDecimal
+
+**Getters/Setters:**
+- [ ] ✅ Todos presentes
+
+**Constructores:**
+- [ ] ✅ Constructor vacío
+- [ ] ✅ Constructor con estudianteId, cursoId
+
+**Métodos:**
+- [ ] ✅ toString()
+
+---
+
+## 🧪 PRUEBAS MANUALES
+
+### Test 1: Crear Matrícula - Caso Válido
+
+**Setup:**
+```
+Estudiante: Juan Pérez (activo)
+Curso: Corte Básico (ABIERTO, cupo=2)
+Descuento: 100000
+Valor Base: 800000
+Valor Final Esperado: 700000
+```
+
+**Pasos:**
+1. [ ] Click "Nueva Matrícula"
+2. [ ] Verificar ComboBox Estudiante cargado
+3. [ ] Verificar ComboBox Curso muestra "ABIERTO" y cupos
+4. [ ] Ingresar Descuento: 100000
+5. [ ] Click "Guardar"
+
+**Resultado esperado:**
+- [ ] ✅ Sin errores en validación
+- [ ] ✅ Notificación verde: "Matrícula creada correctamente"
+- [ ] ✅ Tabla refresca
+- [ ] ✅ Fila nueva muestra:
+  - estudiante = "Juan Pérez"
+  - curso = "Corte Básico"
+  - estado = "PENDIENTE"
+  - valorBase = "800000.00"
+  - descuento = "100000.00"
+  - valorFinal = "700000.00"
+- [ ] ✅ Cupo ahora: 1/2
+
+### Test 2: Crear Matrícula - Cupo Lleno
+
+**Setup:**
+```
+Curso: Corte Básico (2/2 cupos ocupados)
+Estudiante: Carlos López (activo)
+```
+
+**Pasos:**
+1. [ ] Click "Nueva Matrícula"
+2. [ ] Seleccionar Estudiante: Carlos
+3. [ ] Intentar seleccionar Curso: Corte Básico (debe mostrar 0/2 disponibles)
+4. [ ] Click "Guardar"
+
+**Resultado esperado:**
+- [ ] ✅ Notificación roja: "No hay cupos disponibles..."
+
+### Test 3: Crear Matrícula - Curso Cerrado
+
+**Setup:**
+```
+Curso: Maquillaje (CERRADO)
+Estudiante: Juan Pérez (activo)
+```
+
+**Pasos:**
+1. [ ] Click "Nueva Matrícula"
+2. [ ] Seleccionar Estudiante: Juan
+3. [ ] Intentar seleccionar Curso: Maquillaje
+4. [ ] Click "Guardar"
+
+**Resultado esperado:**
+- [ ] ✅ Notificación roja: "El curso debe estar en estado ABIERTO..."
+
+### Test 4: Cancelar Matrícula - Caso Válido
+
+**Setup:**
+```
+Matrícula seleccionada: Juan en Corte Básico (ACTIVA)
+```
+
+**Pasos:**
+1. [ ] Seleccionar fila en tabla
+2. [ ] Click "Cancelar Matrícula"
+
+**Resultado esperado:**
+- [ ] ✅ Dialog "Confirmar cancelación" aparece
+- [ ] ✅ Muestra detalles: Estudiante, Curso, Estado actual
+- [ ] ✅ Muestra: "Se liberará el cupo"
+
+**Continuación:**
+3. [ ] Click "OK"
+
+**Resultado esperado:**
+- [ ] ✅ Sin errores
+- [ ] ✅ Notificación verde: "Matrícula cancelada correctamente. Cupo liberado."
+- [ ] ✅ Tabla refresca
+- [ ] ✅ Fila muestra estado = "CANCELADA"
+- [ ] ✅ Cupo vuelve a 2/2 disponibles
+
+### Test 5: Cancelar Matrícula - Ya Cancelada
+
+**Setup:**
+```
+Matrícula seleccionada: Ana en Corte Básico (CANCELADA)
+```
+
+**Pasos:**
+1. [ ] Seleccionar fila
+2. [ ] Click "Cancelar Matrícula"
+
+**Resultado esperado:**
+- [ ] ✅ Notificación roja: "La matrícula ya se encuentra cancelada"
+- [ ] ✅ NO se abre dialog
+
+### Test 6: Filtrar por Estado
+
+**Pasos:**
+1. [ ] ComboBox Estado: seleccionar "ACTIVA"
+2. [ ] Verificar tabla
+
+**Resultado esperado:**
+- [ ] ✅ Solo muestra matrículas con estado ACTIVA
+
+**Continuación:**
+3. [ ] ComboBox Estado: seleccionar "CANCELADA"
+
+**Resultado esperado:**
+- [ ] ✅ Solo muestra matrículas canceladas
+
+### Test 7: Paginación
+
+**Setup:**
+```
+Tabla con 45 matrículas (45/15 = 3 páginas)
+```
+
+**Pasos:**
+1. [ ] Verificar "Página 1 de 3"
+2. [ ] Click página 2
+3. [ ] Verificar registros 16-30
+4. [ ] Click página 3
+5. [ ] Verificar registros 31-45
+
+**Resultado esperado:**
+- [ ] ✅ Paginación correcta
+- [ ] ✅ Resumen actualizado: "Mostrando X-Y de Z"
+
+---
+
+## 🗄️ VALIDACIONES DE BASE DE DATOS
+
+### Tabla matricula
+
+```sql
+-- Verificar estructura
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'matricula';
+```
+
+Esperado:
+- [ ] ✅ id: bigint, NOT NULL
+- [ ] ✅ fecha: date, NOT NULL
+- [ ] ✅ estado: character varying(20), NOT NULL
+- [ ] ✅ valor_base: numeric(12,2), NOT NULL
+- [ ] ✅ descuento: numeric(12,2), NOT NULL DEFAULT 0
+- [ ] ✅ valor_final: numeric(12,2), NOT NULL
+- [ ] ✅ observaciones: text, NULL
+- [ ] ✅ estudiante_id: bigint, NOT NULL
+- [ ] ✅ curso_id: bigint, NOT NULL
+
+```sql
+-- Verificar constraints
+SELECT constraint_name, constraint_type
+FROM information_schema.table_constraints
+WHERE table_name = 'matricula';
+```
+
+Esperado:
+- [ ] ✅ uq_matricula_estudiante_curso UNIQUE
+- [ ] ✅ fk_matricula_estudiante FOREIGN KEY
+- [ ] ✅ fk_matricula_curso FOREIGN KEY
+
+### Datos de Prueba
+
+```sql
+-- Insertar estudiante activo
+INSERT INTO estudiante (nombre, apellido, tipo_documento, numero_documento, activo, fecha_registro)
+VALUES ('Test', 'Usuario', 'CC', '9999999', true, CURRENT_DATE);
+
+-- Insertar curso ABIERTO
+INSERT INTO curso (nombre, precio_base, cupo_maximo, estado, fecha_inicio, fecha_fin, maestro_id)
+VALUES ('Test Curso', 500000, 5, 'ABIERTO', CURRENT_DATE, CURRENT_DATE + INTERVAL '30 days', NULL);
+
+-- Insertar matrícula
+INSERT INTO matricula (fecha, estado, valor_base, descuento, valor_final, estudiante_id, curso_id)
+VALUES (CURRENT_DATE, 'ACTIVA', 500000, 0, 500000,
+        (SELECT id FROM estudiante WHERE numero_documento = '9999999'),
+        (SELECT id FROM curso WHERE nombre = 'Test Curso'));
+
+-- Verificar cupo
+SELECT COUNT(*) as matriculas_activas
+FROM matricula m
+WHERE m.curso_id = (SELECT id FROM curso WHERE nombre = 'Test Curso')
+  AND m.estado = 'ACTIVA';
+-- Esperado: 1
+
+-- Cancelar
+UPDATE matricula
+SET estado = 'CANCELADA'
+WHERE curso_id = (SELECT id FROM curso WHERE nombre = 'Test Curso');
+
+-- Verificar cupo liberado
+SELECT COUNT(*) as matriculas_activas
+FROM matricula m
+WHERE m.curso_id = (SELECT id FROM curso WHERE nombre = 'Test Curso')
+  AND m.estado = 'ACTIVA';
+-- Esperado: 0
+```
+
+---
+
+## 🔐 PERMISOS
+
+### Verificar en BD
+
+```sql
+-- Verificar permiso MATRICULA_CREAR
+SELECT * FROM permiso WHERE codigo = 'MATRICULA_CREAR';
+-- Esperado: 1 fila
+
+-- Verificar permiso MATRICULA_CANCELAR
+SELECT * FROM permiso WHERE codigo = 'MATRICULA_CANCELAR';
+-- Esperado: 1 fila
+
+-- Verificar asignación al rol ACADEMICO
+SELECT rp.rol_id, p.codigo
+FROM rol_permiso rp
+JOIN permiso p ON rp.permiso_id = p.id
+WHERE p.codigo IN ('MATRICULA_CREAR', 'MATRICULA_CANCELAR');
+-- Esperado: 2 filas
+```
+
+---
+
+## 🚀 COMPILACIÓN Y EJECUCIÓN
+
+```bash
+# 1. Compilar
+cd "C:\Users\Soporte.Tic\3D Objects\Fondo rojo\Pruebas\academia_de_belleza"
+mvn clean compile
+
+# Esperado: BUILD SUCCESS
+
+# 2. Ejecutar tests (si existen)
+mvn test
+
+# Esperado: BUILD SUCCESS
+
+# 3. Ejecutar aplicación
+mvn javafx:run
+
+# Esperado: Ventana JavaFX abre
+```
+
+---
+
+## 📋 CHECKLIST FINAL
+
+- [ ] Todos los archivos creados
+- [ ] Todos los archivos actualizados
+- [ ] Compilación sin errores
+- [ ] Test 1-7 pasan
+- [ ] Validaciones BD OK
+- [ ] Permisos asignados
+- [ ] Documentación completa
+- [ ] Ready for production ✅
+
+---
+
+**Versión:** 1.0
+**Fecha:** 2026-05-04
+**Estado:** ✅ LISTO PARA VERIFICACIÓN
+
