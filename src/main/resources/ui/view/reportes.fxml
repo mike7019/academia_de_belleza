@@ -1,13 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-           fx:id="contentPane"
-           fx:controller="org.example.academia.ui.controller.ReportesController"
-           styleClass="content-pane"
-           alignment="CENTER"
-           prefWidth="Infinity" prefHeight="Infinity"
-           maxWidth="Infinity" maxHeight="Infinity">
-    <fx:include fx:id="moduleCard" source="components/module-card.fxml"/>
-</StackPane>
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:id="contentPane"
+            fx:controller="org.example.academia.ui.controller.ReportesController"
+            styleClass="content-pane"
+            prefWidth="Infinity" prefHeight="Infinity">
+    <!-- Panel de filtros -->
+    <top>
+        <VBox spacing="8" style="-fx-padding: 16 16 8 16;">
+            <HBox spacing="8">
+                <Label text="Nombre:" />
+                <TextField fx:id="nombreField" promptText="Buscar por nombre" />
+                <Label text="Curso:" />
+                <ComboBox fx:id="cursoCombo" promptText="Todos los cursos" prefWidth="180" />
+                <Label text="Estado:" />
+                <ComboBox fx:id="estadoCombo" promptText="Todos" prefWidth="120" />
+                <Label text="Fecha registro:" />
+                <DatePicker fx:id="fechaDesdePicker" promptText="Desde" />
+                <DatePicker fx:id="fechaHastaPicker" promptText="Hasta" />
+                <Button fx:id="btnFiltrar" text="Generar reporte" />
+            </HBox>
+        </VBox>
+    </top>
+    <!-- Tabla de estudiantes -->
+    <center>
+        <VBox spacing="8" style="-fx-padding: 8 16 8 16;">
+            <TableView fx:id="tablaEstudiantes" prefHeight="400">
+                <columns>
+                    <TableColumn fx:id="colId" text="ID" prefWidth="60" />
+                    <TableColumn fx:id="colNombreCompleto" text="Nombre completo" prefWidth="180" />
+                    <TableColumn fx:id="colDocumento" text="Documento" prefWidth="120" />
+                    <TableColumn fx:id="colTelefono" text="Teléfono" prefWidth="110" />
+                    <TableColumn fx:id="colEmail" text="Email" prefWidth="160" />
+                    <TableColumn fx:id="colCurso" text="Curso matriculado" prefWidth="160" />
+                    <TableColumn fx:id="colEstado" text="Estado" prefWidth="90" />
+                    <TableColumn fx:id="colFechaRegistro" text="Fecha de registro" prefWidth="120" />
+                </columns>
+            </TableView>
+            <Label fx:id="lblSinResultados" text="No se encontraron estudiantes con los filtros seleccionados" visible="false" style="-fx-text-fill: #b00;" />
+        </VBox>
+    </center>
+    <!-- Botones de exportación y total -->
+    <bottom>
+        <HBox spacing="16" alignment="CENTER_RIGHT" style="-fx-padding: 8 16 16 16;">
+            <Label fx:id="lblTotal" text="Total estudiantes: 0" style="-fx-font-weight: bold;" />
+            <Button fx:id="btnExportarPDF" text="Exportar PDF" />
+            <Button fx:id="btnExportarExcel" text="Exportar Excel" />
+        </HBox>
+    </bottom>
+</BorderPane>
